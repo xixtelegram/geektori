@@ -1,0 +1,22 @@
+body { font-family: 'Vazirmatn', Tahoma, system-ui, sans-serif; }
+.card { transition: all 0.2s ease; }
+.card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px -8px rgba(0,0,0,0.12); }
+.table-row:hover { background: #f0f9ff; }
+.scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+.fade-in { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+.badge { font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 9999px; font-weight: 600; }
+details summary { cursor: pointer; list-style: none; }
+details summary::-webkit-details-marker { display: none; }
+details[open] summary .chevron { transform: rotate(90deg); }
+.chevron { transition: transform 0.2s; display: inline-block; }
+#loadingOverlay { backdrop-filter: blur(2px); }
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid #e0f2fe;
+  border-top-color: #0ea5e9;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
