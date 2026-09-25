@@ -2,6 +2,10 @@ import { state } from './state.js';
 import { getFilteredProducts, getFilteredFlat } from './filters.js';
 import { fmt, fmtMoney, escapeHtml, truncateLabel } from '../shared/format.js';
 
+/** سهم طراح از مبلغ کل فروش */
+const DESIGNER_SHARE = 0.3;
+const designerIncome = (totalRev) => (totalRev || 0) * DESIGNER_SHARE;
+
 export function renderKPIs() {
   const totalProducts = state.products.length;
   const totalVariants = state.rawRows.length;
@@ -14,7 +18,8 @@ export function renderKPIs() {
     { label: 'واریانت کل', value: fmt(totalVariants), icon: '🧩' },
     { label: 'واریانت فروخته‌شده', value: fmt(soldVariants), icon: '✅' },
     { label: 'تعداد فروش کل', value: fmt(totalQty), icon: '🛒' },
-    { label: 'درآمد کل', value: fmtMoney(totalRev), icon: '💰' },
+    { label: 'مبلغ کل فروش', value: fmtMoney(totalRev), icon: '💵' },
+    { label: 'درآمد طراح (۳۰٪)', value: fmtMoney(designerIncome(totalRev)), icon: '💰' },
   ];
 
   const el = document.getElementById('kpiCards');
@@ -127,7 +132,8 @@ export function renderTable() {
           <th class="text-right py-3 px-4 font-semibold">محصول</th>
           <th class="text-center py-3 px-3 font-semibold">واریانت</th>
           <th class="text-center py-3 px-3 font-semibold">فروش</th>
-          <th class="text-center py-3 px-3 font-semibold">درآمد</th>
+          <th class="text-center py-3 px-3 font-semibold">مبلغ کل فروش</th>
+          <th class="text-center py-3 px-3 font-semibold">درآمد طراح (۳۰٪)</th>
           <th class="text-center py-3 px-3 font-semibold">قیمت</th>
           <th class="text-right py-3 px-4 font-semibold">جزئیات</th>
         </tr>
@@ -151,7 +157,7 @@ export function renderTable() {
           <span class="badge bg-amber-50 text-amber-800">${escapeHtml(v.size)}</span>
           <span class="text-slate-500">قیمت: ${v.price ? fmtMoney(v.price) : '—'}</span>
           <span class="font-semibold ${v.qty ? 'text-emerald-600' : 'text-slate-400'}">${v.qty ? fmt(v.qty) + ' عدد' : '۰'}</span>
-          ${v.total ? `<span class="text-slate-600">= ${fmtMoney(v.total)}</span>` : ''}
+          ${v.total ? `<span class="text-slate-600">فروش: ${fmtMoney(v.total)}</span><span class="text-brand-700 font-medium">طراح: ${fmtMoney(designerIncome(v.total))}</span>` : ''}
         </div>`
         )
         .join('');
@@ -170,6 +176,7 @@ export function renderTable() {
           <td class="text-center py-3 px-3 text-slate-600">${fmt(p.variants.length)}</td>
           <td class="text-center py-3 px-3 font-semibold ${p.totalQty ? 'text-emerald-600' : 'text-slate-400'}">${fmt(p.totalQty)}</td>
           <td class="text-center py-3 px-3 font-medium text-slate-700">${p.totalRev ? fmtMoney(p.totalRev) : '—'}</td>
+          <td class="text-center py-3 px-3 font-semibold text-brand-700">${p.totalRev ? fmtMoney(designerIncome(p.totalRev)) : '—'}</td>
           <td class="text-center py-3 px-3 text-slate-600 text-xs">${priceRange}</td>
           <td class="py-3 px-4 text-xs text-slate-500">${escapeHtml(p.materials.slice(0, 3).join(' · '))}${p.materials.length > 3 ? '…' : ''}</td>
         </tr>`;
@@ -191,7 +198,8 @@ export function renderTable() {
           <th class="text-center py-3 px-3 font-semibold">سایز</th>
           <th class="text-center py-3 px-3 font-semibold">قیمت</th>
           <th class="text-center py-3 px-3 font-semibold">فروش</th>
-          <th class="text-center py-3 px-3 font-semibold">مجموع</th>
+          <th class="text-center py-3 px-3 font-semibold">مبلغ کل فروش</th>
+          <th class="text-center py-3 px-3 font-semibold">درآمد طراح (۳۰٪)</th>
         </tr>
       </thead><tbody>`;
     list.forEach((v) => {
@@ -203,6 +211,7 @@ export function renderTable() {
           <td class="text-center py-2.5 px-3 text-slate-700">${v.price ? fmtMoney(v.price) : '—'}</td>
           <td class="text-center py-2.5 px-3 font-semibold ${v.qty ? 'text-emerald-600' : 'text-slate-400'}">${fmt(v.qty)}</td>
           <td class="text-center py-2.5 px-3 text-slate-700">${v.total ? fmtMoney(v.total) : '—'}</td>
+          <td class="text-center py-2.5 px-3 font-semibold text-brand-700">${v.total ? fmtMoney(designerIncome(v.total)) : '—'}</td>
         </tr>`;
     });
     html += `</tbody></table>`;
