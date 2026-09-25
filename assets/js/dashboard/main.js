@@ -45,17 +45,34 @@ function handleFile(file) {
 }
 
 function getExportData() {
+  const designerShare = 0.3;
   if (state.currentView === 'grouped') {
     const list = getFilteredProducts();
     return {
-      headers: ['محصول', 'تعداد واریانت', 'فروش کل', 'درآمد کل', 'کمترین قیمت', 'بیشترین قیمت'],
-      rows: list.map((p) => [p.name, p.variants.length, p.totalQty, p.totalRev, p.minPrice, p.maxPrice]),
+      headers: ['محصول', 'تعداد واریانت', 'فروش کل', 'مبلغ کل فروش', 'درآمد طراح (۳۰٪)', 'کمترین قیمت', 'بیشترین قیمت'],
+      rows: list.map((p) => [
+        p.name,
+        p.variants.length,
+        p.totalQty,
+        p.totalRev,
+        Math.round((p.totalRev || 0) * designerShare),
+        p.minPrice,
+        p.maxPrice,
+      ]),
     };
   }
   const list = getFilteredFlat();
   return {
-    headers: ['محصول', 'جنس', 'سایز', 'قیمت', 'فروش', 'مجموع'],
-    rows: list.map((v) => [v.name, v.material, v.size, v.price, v.qty, v.total]),
+    headers: ['محصول', 'جنس', 'سایز', 'قیمت', 'فروش', 'مبلغ کل فروش', 'درآمد طراح (۳۰٪)'],
+    rows: list.map((v) => [
+      v.name,
+      v.material,
+      v.size,
+      v.price,
+      v.qty,
+      v.total,
+      Math.round((v.total || 0) * designerShare),
+    ]),
   };
 }
 
