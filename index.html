@@ -292,7 +292,6 @@ async function uploadToGitHub(file) {
     return;
   }
   try {
-    showToast('در حال ذخیره فایل در گیت‌هاب...', 'info');
     const fd = new FormData();
     fd.append('file', file, file.name);
     const res = await fetch(WORKER_URL, { method: 'POST', body: fd });
@@ -300,7 +299,7 @@ async function uploadToGitHub(file) {
     if (!res.ok || !data.ok) {
       throw new Error(data.error || ('خطا ' + res.status));
     }
-    showToast('فایل در گیت‌هاب ذخیره شد: ' + (data.path || ''), 'ok');
+    showToast('فایل تایید شد', 'ok');
   } catch (err) {
     console.error(err);
     showToast('ذخیره در گیت‌هاب ناموفق: ' + (err.message || err), 'err');
