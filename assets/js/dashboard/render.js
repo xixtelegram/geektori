@@ -10,25 +10,25 @@ export function renderKPIs() {
   const totalRev = state.rawRows.reduce((s, r) => s + r.total, 0);
 
   const cards = [
-    { label: 'محصول یکتا', value: fmt(totalProducts), icon: '📦', bg: 'bg-blue-50' },
-    { label: 'واریانت کل', value: fmt(totalVariants), icon: '🧩', bg: 'bg-violet-50' },
-    { label: 'واریانت فروخته‌شده', value: fmt(soldVariants), icon: '✅', bg: 'bg-emerald-50' },
-    { label: 'تعداد فروش کل', value: fmt(totalQty), icon: '🛒', bg: 'bg-amber-50' },
-    { label: 'درآمد کل', value: fmtMoney(totalRev), icon: '💰', bg: 'bg-rose-50' },
+    { label: 'محصول یکتا', value: fmt(totalProducts), icon: '📦' },
+    { label: 'واریانت کل', value: fmt(totalVariants), icon: '🧩' },
+    { label: 'واریانت فروخته‌شده', value: fmt(soldVariants), icon: '✅' },
+    { label: 'تعداد فروش کل', value: fmt(totalQty), icon: '🛒' },
+    { label: 'درآمد کل', value: fmtMoney(totalRev), icon: '💰' },
   ];
 
   const el = document.getElementById('kpiCards');
   el.innerHTML = '';
   cards.forEach((c) => {
     const div = document.createElement('div');
-    div.className = `card bg-white rounded-2xl border border-slate-100 p-4 shadow-sm ${c.bg}`;
+    div.className = 'glass-card p-4';
     div.innerHTML = `
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-xs font-medium opacity-70 mb-1">${escapeHtml(c.label)}</p>
-          <p class="text-lg font-bold leading-tight">${escapeHtml(c.value)}</p>
+          <p class="text-xs font-medium text-ios-secondary mb-1">${escapeHtml(c.label)}</p>
+          <p class="text-lg font-bold leading-tight tracking-tight">${escapeHtml(c.value)}</p>
         </div>
-        <span class="text-2xl">${c.icon}</span>
+        <span class="text-2xl opacity-90">${c.icon}</span>
       </div>`;
     el.appendChild(div);
   });
