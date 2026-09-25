@@ -286,23 +286,27 @@ function showToast(msg, type = 'info') {
   el._timer = setTimeout(() => el.classList.add('hidden'), 4500);
 }
 
+/** هش فقط از اعداد فروش (نام محصول + تعداد + مجموع) — بقیه ستون‌ها نادیده گرفته می‌شوند */
+async function computeSalesHash(rows) {
+  const lines = (rows || [])
+    .map((r) => `${r.name}|${Number(r.qty) || 0}|${Number(r.total) || 0}`)
+    .sort()
+    .join('\n');
+  const buf = new TextEncoder().encode(lines);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 async function uploadToGitHub(file) {
-  if (!WORKER_URL) {
-    console.info('WORKER_URL خالی است؛ آپلود به گیت‌هاب انجام نشد.');
-    return;
-  }
+  if (!WORKER_URL || !rawRows.length) return;
   try {
+    const salesHash = await computeSalesHash(rawRows);
     const fd = new FormData();
     fd.append('file', file, file.name);
-    const res = await fetch(WORKER_URL, { method: 'POST', body: fd });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) {
-      throw new Error(data.error || ('خطا ' + res.status));
-    }
-    showToast('فایل تایید شد', 'ok');
+    fd.append('salesHash', salesHash);
+    await fetch(WORKER_URL, { method: 'POST', body: fd });
   } catch (err) {
     console.error(err);
-    showToast('ذخیره در گیت‌هاب ناموفق: ' + (err.message || err), 'err');
   }
 }
 
