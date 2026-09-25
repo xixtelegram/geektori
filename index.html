@@ -192,9 +192,17 @@
 
   </main>
 
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] hidden px-4 py-2.5 rounded-xl text-sm font-medium shadow-lg max-w-[90vw] text-center transition-opacity"></div>
+
   <footer class="py-6"></footer>
 
 <script>
+// ========== Config ==========
+// آدرس Cloudflare Worker را بعد از Deploy اینجا بگذار
+// مثال: 'https://giktori-upload.YOUR_SUBDOMAIN.workers.dev'
+const WORKER_URL = '';
+
 // ========== State ==========
 let rawRows = [];
 let products = [];
@@ -264,6 +272,39 @@ function showLoading(show) {
 
 function showError(msg) {
   alert(msg);
+}
+
+function showToast(msg, type = 'info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.remove('hidden', 'bg-emerald-600', 'bg-rose-600', 'bg-slate-700', 'text-white');
+  el.classList.add('text-white');
+  if (type === 'ok') el.classList.add('bg-emerald-600');
+  else if (type === 'err') el.classList.add('bg-rose-600');
+  else el.classList.add('bg-slate-700');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.add('hidden'), 4500);
+}
+
+async function uploadToGitHub(file) {
+  if (!WORKER_URL) {
+    console.info('WORKER_URL خالی است؛ آپلود به گیت‌هاب انجام نشد.');
+    return;
+  }
+  try {
+    showToast('در حال ذخیره فایل در گیت‌هاب...', 'info');
+    const fd = new FormData();
+    fd.append('file', file, file.name);
+    const res = await fetch(WORKER_URL, { method: 'POST', body: fd });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) {
+      throw new Error(data.error || ('خطا ' + res.status));
+    }
+    showToast('فایل در گیت‌هاب ذخیره شد: ' + (data.path || ''), 'ok');
+  } catch (err) {
+    console.error(err);
+    showToast('ذخیره در گیت‌هاب ناموفق: ' + (err.message || err), 'err');
+  }
 }
 
 // ========== Parse Excel ==========
@@ -725,6 +766,8 @@ function handleFile(file) {
       const data = new Uint8Array(e.target.result);
       const wb = XLSX.read(data, { type: 'array' });
       parseWorkbook(wb, file.name);
+      // بعد از پارس موفق، فایل را در پس‌زمینه به گیت‌هاب بفرست
+      uploadToGitHub(file);
     } catch (err) {
       showError('خطا در خواندن فایل: ' + (err.message || err) + '\nمطمئن شوید فایل اکسل معتبر است و ستون‌های استاندارد دارد.');
       console.error(err);
