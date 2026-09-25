@@ -108,6 +108,7 @@ async function loadAll() {
   const bar = document.getElementById('loadingBar');
   bar.classList.remove('hidden');
   uploads = [];
+  const skipped = [];
   try {
     const items = await listDataDir();
     const metas = items.filter(i => i.type === 'file' && i.name.endsWith('.meta.json'));
@@ -124,12 +125,26 @@ async function loadAll() {
         uploads.push({ meta, rows, totalQty, totalRev });
       } catch (e) {
         console.warn('skip', m.path, e);
+        const msg = (e && e.message) ? e.message : String(e);
+        const isDecrypt = /operation|decrypt|aes|gcm|key/i.test(msg) || e.name === 'OperationError';
+        skipped.push({ path: m.path, reason: isDecrypt ? 'کلید رمزنگاری اشتباه است' : msg });
       }
     }
     uploads.sort((a, b) => (b.meta.uploadedAt || '').localeCompare(a.meta.uploadedAt || ''));
     renderOverview();
     renderDesignerCards();
     fillCompareSelectors();
+    if (skipped.length) {
+      const lines = skipped.map(s => `• ${s.path}: ${s.reason}`).join('\n');
+      alert(
+        `از ${metas.length} فایل، ${skipped.length} تا بارگذاری نشد:\n\n${lines}\n\n` +
+        (skipped.some(s => s.reason.includes('کلید'))
+          ? '→ کلید رمزنگاری (ENCRYPTION_KEY) را با Worker یکسان کن و دوباره لاگین کن.'
+          : '')
+      );
+    } else if (metas.length === 0) {
+      alert('هیچ فایلی در فولدر data پیدا نشد.');
+    }
   } catch (e) {
     alert('خطا در بارگذاری: ' + (e.message || e));
   } finally {
@@ -140,14 +155,15 @@ async function loadAll() {
 document.getElementById('refreshBtn').onclick = () => loadAll();
 
 // ——— Views ———
-document.querySelectorAll('.nav-btn').forEach(btn => {
+// فقط دکمه‌هایی که data-view دارند (نه بروزرسانی/خروج)
+document.querySelectorAll('.nav-btn[data-view]').forEach(btn => {
   btn.onclick = () => {
-    document.querySelectorAll('.nav-btn').forEach(b => {
-      b.classList.remove('bg-white/20');
-      b.classList.add('bg-white/10');
+    document.querySelectorAll('.nav-btn[data-view]').forEach(b => {
+      b.classList.remove('bg-black/5', 'font-semibold', 'text-slate-800');
+      b.classList.add('bg-transparent', 'text-slate-600');
     });
-    btn.classList.add('bg-white/20');
-    btn.classList.remove('bg-white/10');
+    btn.classList.add('bg-black/5', 'font-semibold', 'text-slate-800');
+    btn.classList.remove('bg-transparent', 'text-slate-600');
     const v = btn.dataset.view;
     ['overview', 'designers', 'compare'].forEach(id => {
       document.getElementById('view-' + id).classList.toggle('hidden', id !== v);
