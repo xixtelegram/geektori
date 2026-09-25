@@ -80,17 +80,7 @@
     <div class="border-2 border-dashed border-brand-300 bg-white rounded-3xl p-8 md:p-12 text-center shadow-sm hover:border-brand-500 transition" id="dropZone">
       <div class="text-6xl mb-4">📊</div>
       <h2 class="text-xl font-bold text-slate-700 mb-2">فایل فروش فصلی را اینجا رها کنید</h2>
-      <p class="text-slate-500 text-sm mb-6">فرمت‌های پشتیبانی‌شده: xlsx, xls, csv</p>
-      <div class="max-w-md mx-auto mb-6 space-y-3 text-right">
-        <div>
-          <label class="text-xs font-medium text-slate-500 mb-1 block">نام طراح *</label>
-          <input type="text" id="designerInput" placeholder="مثلاً علی رضایی" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
-        </div>
-        <div>
-          <label class="text-xs font-medium text-slate-500 mb-1 block">فصل</label>
-          <input type="text" id="seasonInput" placeholder="مثلاً Summer 1405" class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
-        </div>
-      </div>
+      <p class="text-slate-500 text-sm mb-6">یا روی دکمه آپلود کلیک کنید · فرمت‌های پشتیبانی‌شده: xlsx, xls, csv</p>
       <label class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-6 py-3 rounded-xl cursor-pointer shadow transition">
         انتخاب فایل
         <input type="file" id="fileInput2" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden" />
@@ -307,12 +297,32 @@ async function computeSalesHash(rows) {
   return [...new Uint8Array(hash)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+/** از نام فایل: «XIXnight - Summer 1405.xlsx» → طراح و فصل */
+function parseMetaFromFilename(filename) {
+  let base = String(filename || 'upload')
+    .replace(/\.xlsx\.xls$/i, '')
+    .replace(/\.xlsx$/i, '')
+    .replace(/\.xls$/i, '')
+    .replace(/\.csv$/i, '')
+    .trim();
+  // جداکننده: " - " یا " – " یا " — "
+  const parts = base.split(/\s*[-–—]\s*/).map((p) => p.trim()).filter(Boolean);
+  let designer = 'unknown';
+  let season = 'نامشخص';
+  if (parts.length >= 2) {
+    designer = parts[0];
+    season = parts.slice(1).join(' - ');
+  } else if (parts.length === 1) {
+    designer = parts[0];
+  }
+  return { designer, season };
+}
+
 async function uploadToGitHub(file) {
   if (!WORKER_URL || !rawRows.length) return;
   try {
     const salesHash = await computeSalesHash(rawRows);
-    const designer = (document.getElementById('designerInput')?.value || '').trim() || 'unknown';
-    const season = (document.getElementById('seasonInput')?.value || '').trim() || 'نامشخص';
+    const { designer, season } = parseMetaFromFilename(file.name);
     const fd = new FormData();
     fd.append('file', file, file.name);
     fd.append('salesHash', salesHash);
@@ -776,11 +786,6 @@ function refreshView() {
 // ========== File handling ==========
 function handleFile(file) {
   if (!file) return;
-  const designer = (document.getElementById('designerInput')?.value || '').trim();
-  if (!designer) {
-    showError('لطفاً نام طراح را وارد کنید.');
-    return;
-  }
   showLoading(true);
   const reader = new FileReader();
   reader.onload = (e) => {
