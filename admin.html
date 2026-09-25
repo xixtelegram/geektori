@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>پنل مدیریت فروش | گیکتوری</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Vazirmatn', 'Tahoma', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: { 50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Vazirmatn', Tahoma, system-ui, sans-serif; }
+    .card { transition: all 0.15s ease; }
+    .card:hover { transform: translateY(-1px); box-shadow: 0 8px 20px -8px rgba(0,0,0,0.12); }
+    .scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+  <!-- Login -->
+  <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
+    <div class="bg-white rounded-3xl shadow-lg border border-slate-100 p-8 w-full max-w-md">
+      <div class="text-center mb-6">
+        <div class="text-4xl mb-2">🔐</div>
+        <h1 class="text-xl font-bold">پنل مدیریت فروش</h1>
+        <p class="text-sm text-slate-500 mt-1">ورود با توکن گیت‌هاب</p>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="text-xs font-medium text-slate-500 mb-1 block">GitHub Token</label>
+          <input type="password" id="loginToken" placeholder="ghp_... یا github_pat_..." class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+        </div>
+        <div>
+          <label class="text-xs font-medium text-slate-500 mb-1 block">کلید رمزنگاری (همان ENCRYPTION_KEY ورکر)</label>
+          <input type="password" id="loginKey" placeholder="کلید مشترک با Worker" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-medium text-slate-500 mb-1 block">Owner</label>
+            <input type="text" id="loginOwner" value="xixtelegram" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-slate-500 mb-1 block">Repo</label>
+            <input type="text" id="loginRepo" value="geektori" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+          </div>
+        </div>
+        <p id="loginError" class="text-rose-600 text-sm hidden"></p>
+        <button id="loginBtn" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 rounded-xl transition">ورود</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div id="appScreen" class="hidden">
+    <header class="bg-gradient-to-l from-brand-700 to-brand-500 text-white shadow sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <span class="text-xl">🏷️</span>
+          <div>
+            <h1 class="font-bold text-lg leading-tight">پنل مدیریت فروش</h1>
+            <p class="text-xs text-brand-100" id="repoLabel">—</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button data-view="overview" class="nav-btn bg-white/20 px-3 py-1.5 rounded-lg text-sm font-medium">نمای کلی</button>
+          <button data-view="designers" class="nav-btn bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm">طراح‌ها</button>
+          <button data-view="compare" class="nav-btn bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm">مقایسه</button>
+          <button id="refreshBtn" class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm">بروزرسانی</button>
+          <button id="logoutBtn" class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm">خروج</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+      <div id="loadingBar" class="hidden text-center text-sm text-slate-500 py-8">در حال بارگذاری...</div>
+
+      <!-- Overview -->
+      <section id="view-overview" class="space-y-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="overviewKpis"></div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-100 font-bold text-sm">آخرین آپلودها</div>
+          <div class="overflow-x-auto scrollbar" id="uploadsTable"></div>
+        </div>
+      </section>
+
+      <!-- Designers -->
+      <section id="view-designers" class="hidden space-y-4">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3" id="designerCards"></div>
+        <div id="designerDetail" class="hidden bg-white rounded-2xl border border-slate-100 shadow-sm p-4 space-y-4">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <h2 class="font-bold text-lg" id="designerTitle">—</h2>
+            <button id="closeDesigner" class="text-sm text-slate-500 underline">بستن</button>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="designerKpis"></div>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div class="border border-slate-100 rounded-xl p-3">
+              <h3 class="text-sm font-bold mb-2">فروش هر فصل</h3>
+              <div class="h-48"><canvas id="designerSeasonChart"></canvas></div>
+            </div>
+            <div class="border border-slate-100 rounded-xl p-3">
+              <h3 class="text-sm font-bold mb-2">فایل‌های طراح</h3>
+              <div id="designerFiles" class="space-y-2 max-h-48 overflow-y-auto scrollbar text-sm"></div>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold mb-2">جزئیات محصولات (فصل انتخاب‌شده)</h3>
+            <select id="designerSeasonSelect" class="border border-slate-200 rounded-xl px-3 py-2 text-sm mb-3"></select>
+            <div class="overflow-x-auto scrollbar max-h-[40vh] border border-slate-100 rounded-xl" id="designerProducts"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Compare -->
+      <section id="view-compare" class="hidden space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+          <div class="flex flex-wrap gap-3 items-end">
+            <div>
+              <label class="text-xs text-slate-500 block mb-1">فصل</label>
+              <select id="compareSeason" class="border border-slate-200 rounded-xl px-3 py-2 text-sm min-w-[140px]"></select>
+            </div>
+            <div class="flex-1 min-w-[200px]">
+              <label class="text-xs text-slate-500 block mb-1">طراح‌ها (چندتایی با Ctrl/Cmd)</label>
+              <select id="compareDesigners" multiple class="border border-slate-200 rounded-xl px-3 py-2 text-sm w-full h-28"></select>
+            </div>
+            <button id="runCompare" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2 rounded-xl text-sm">مقایسه</button>
+          </div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="bg-white rounded-2xl border border-slate-100 p-4">
+            <h3 class="text-sm font-bold mb-2">تعداد فروش</h3>
+            <div class="h-56"><canvas id="compareQtyChart"></canvas></div>
+          </div>
+          <div class="bg-white rounded-2xl border border-slate-100 p-4">
+            <h3 class="text-sm font-bold mb-2">درآمد</h3>
+            <div class="h-56"><canvas id="compareRevChart"></canvas></div>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+          <div class="px-4 py-3 border-b border-slate-100 font-bold text-sm">جدول مقایسه</div>
+          <div class="overflow-x-auto scrollbar" id="compareTable"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+<script>
+const fmt = (n) => new Intl.NumberFormat('fa-IR').format(n || 0);
+const fmtMoney = (n) => fmt(n) + ' تومان';
+
+let cfg = { token: '', key: '', owner: '', repo: '', branch: 'main' };
+let uploads = []; // { meta, rows, totalQty, totalRev }
+let seasonChart = null, cmpQty = null, cmpRev = null;
+
+// ——— Auth ———
+function loadSession() {
+  try {
+    const s = JSON.parse(sessionStorage.getItem('giktori_admin') || 'null');
+    if (s?.token && s?.key) {
+      cfg = s;
+      return true;
+    }
+  } catch {}
+  return false;
+}
+function saveSession() {
+  sessionStorage.setItem('giktori_admin', JSON.stringify(cfg));
+}
+function clearSession() {
+  sessionStorage.removeItem('giktori_admin');
+}
+
+document.getElementById('loginBtn').onclick = async () => {
+  const err = document.getElementById('loginError');
+  err.classList.add('hidden');
+  cfg.token = document.getElementById('loginToken').value.trim();
+  cfg.key = document.getElementById('loginKey').value.trim();
+  cfg.owner = document.getElementById('loginOwner').value.trim();
+  cfg.repo = document.getElementById('loginRepo').value.trim();
+  if (!cfg.token || !cfg.key || !cfg.owner || !cfg.repo) {
+    err.textContent = 'همه فیلدها لازم است.';
+    err.classList.remove('hidden');
+    return;
+  }
+  try {
+    const res = await gh(`/repos/${cfg.owner}/${cfg.repo}`);
+    if (!res.ok) throw new Error('توکن یا دسترسی ریپو نامعتبر است');
+    saveSession();
+    showApp();
+    await loadAll();
+  } catch (e) {
+    err.textContent = e.message || String(e);
+    err.classList.remove('hidden');
+  }
+};
+
+document.getElementById('logoutBtn').onclick = () => {
+  clearSession();
+  location.reload();
+};
+
+function showApp() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+  document.getElementById('repoLabel').textContent = `${cfg.owner}/${cfg.repo}`;
+}
+
+// ——— GitHub API ———
+async function gh(path, opts = {}) {
+  return fetch(`https://api.github.com${path}`, {
+    ...opts,
+    headers: {
+      Authorization: `Bearer ${cfg.token}`,
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': 'giktori-admin-panel',
+      ...(opts.headers || {}),
+    },
+  });
+}
+
+async function listDataDir() {
+  const res = await gh(`/repos/${cfg.owner}/${cfg.repo}/contents/data?ref=${cfg.branch}`);
+  if (res.status === 404) return [];
+  if (!res.ok) throw new Error('خواندن فولدر data ناموفق');
+  const items = await res.json();
+  return Array.isArray(items) ? items : [];
+}
+
+async function getFileContentBase64(path) {
+  const res = await gh(`/repos/${cfg.owner}/${cfg.repo}/contents/${path}?ref=${cfg.branch}`);
+  if (!res.ok) throw new Error('خواندن فایل: ' + path);
+  const data = await res.json();
+  return data.content.replace(/\n/g, '');
+}
+
+function b64ToBytes(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+// ——— Crypto (همان الگوریتم Worker) ———
+async function deriveKey(secret) {
+  const material = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret), 'PBKDF2', false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: new TextEncoder().encode('giktori-sticker-v1'), iterations: 100000, hash: 'SHA-256' },
+    material,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function decryptBytes(payload, secret) {
+  const key = await deriveKey(secret);
+  const iv = payload.slice(0, 12);
+  const data = payload.slice(12);
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+  return new Uint8Array(plain);
+}
+
+// ——— Parse excel from bytes (same logic simplified) ———
+function parseExcelBytes(bytes) {
+  const wb = XLSX.read(bytes, { type: 'array' });
+  const sheet = wb.Sheets[wb.SheetNames[0]];
+  const data = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+  if (!data.length) return [];
+  const keys = Object.keys(data[0]);
+  const col = {};
+  keys.forEach(k => {
+    const kl = String(k).toLowerCase();
+    if (k.includes('استیکر') || kl.includes('product') || (kl.includes('name') && !col.name)) col.name = k;
+    else if (k.includes('تعداد فروش') || kl.includes('qty') || kl.includes('quantity')) col.qty = k;
+    else if (k.includes('قیمت') || kl === 'price') col.price = k;
+    else if (k.includes('مجموع') && !k.includes('تعداد') && !col.total) col.total = k;
+  });
+  if (!col.name) col.name = keys.find(k => k.includes('استیکر')) || keys[2] || keys[0];
+  if (!col.qty) col.qty = keys.find(k => k.includes('تعداد فروش')) || 'تعداد فروش فصل';
+  if (!col.price) col.price = keys.find(k => k.includes('قیمت')) || 'قیمت';
+  if (!col.total) col.total = keys.find(k => k === 'مجموع') || 'مجموع';
+
+  return data.map(r => {
+    const name = String(r[col.name] || '').trim();
+    if (!name) return null;
+    const qty = Number(r[col.qty]) || 0;
+    const price = Number(r[col.price]) || 0;
+    let total = Number(r[col.total]);
+    if (!total && qty && price) total = qty * price;
+    return { name, qty, price, total: total || 0 };
+  }).filter(Boolean);
+}
+
+// ——— Load all ———
+async function loadAll() {
+  const bar = document.getElementById('loadingBar');
+  bar.classList.remove('hidden');
+  uploads = [];
+  try {
+    const items = await listDataDir();
+    const metas = items.filter(i => i.type === 'file' && i.name.endsWith('.meta.json'));
+    for (const m of metas) {
+      try {
+        const metaB64 = await getFileContentBase64(m.path);
+        const meta = JSON.parse(new TextDecoder().decode(b64ToBytes(metaB64)));
+        const encPath = `data/${meta.salesHash}.enc`;
+        const encB64 = await getFileContentBase64(encPath);
+        const plain = await decryptBytes(b64ToBytes(encB64), cfg.key);
+        const rows = parseExcelBytes(plain);
+        const totalQty = rows.reduce((s, r) => s + r.qty, 0);
+        const totalRev = rows.reduce((s, r) => s + r.total, 0);
+        uploads.push({ meta, rows, totalQty, totalRev });
+      } catch (e) {
+        console.warn('skip', m.path, e);
+      }
+    }
+    uploads.sort((a, b) => (b.meta.uploadedAt || '').localeCompare(a.meta.uploadedAt || ''));
+    renderOverview();
+    renderDesignerCards();
+    fillCompareSelectors();
+  } catch (e) {
+    alert('خطا در بارگذاری: ' + (e.message || e));
+  } finally {
+    bar.classList.add('hidden');
+  }
+}
+
+document.getElementById('refreshBtn').onclick = () => loadAll();
+
+// ——— Views ———
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.nav-btn').forEach(b => {
+      b.classList.remove('bg-white/20');
+      b.classList.add('bg-white/10');
+    });
+    btn.classList.add('bg-white/20');
+    btn.classList.remove('bg-white/10');
+    const v = btn.dataset.view;
+    ['overview', 'designers', 'compare'].forEach(id => {
+      document.getElementById('view-' + id).classList.toggle('hidden', id !== v);
+    });
+  };
+});
+
+function renderOverview() {
+  const designers = new Set(uploads.map(u => u.meta.designer));
+  const seasons = new Set(uploads.map(u => u.meta.season));
+  const totalQty = uploads.reduce((s, u) => s + u.totalQty, 0);
+  const totalRev = uploads.reduce((s, u) => s + u.totalRev, 0);
+  const kpis = [
+    { label: 'تعداد آپلود', value: fmt(uploads.length) },
+    { label: 'طراح یکتا', value: fmt(designers.size) },
+    { label: 'فصل‌ها', value: fmt(seasons.size) },
+    { label: 'فروش کل', value: fmt(totalQty) },
+  ];
+  document.getElementById('overviewKpis').innerHTML = kpis.map(k => `
+    <div class="card bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
+      <p class="text-xs text-slate-500 mb-1">${k.label}</p>
+      <p class="text-lg font-bold">${k.value}</p>
+    </div>
+  `).join('');
+
+  const rows = uploads.map(u => `
+    <tr class="border-t border-slate-50 hover:bg-slate-50">
+      <td class="py-2.5 px-4 font-medium">${esc(u.meta.designer)}</td>
+      <td class="py-2.5 px-3 text-sm">${esc(u.meta.season)}</td>
+      <td class="py-2.5 px-3 text-sm text-slate-500">${esc(u.meta.originalName || '')}</td>
+      <td class="py-2.5 px-3 text-center font-semibold text-emerald-600">${fmt(u.totalQty)}</td>
+      <td class="py-2.5 px-3 text-center text-sm">${fmtMoney(u.totalRev)}</td>
+      <td class="py-2.5 px-3 text-xs text-slate-400">${esc((u.meta.uploadedAt || '').slice(0, 16).replace('T', ' '))}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('uploadsTable').innerHTML = `
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-xs text-slate-500">
+        <tr>
+          <th class="text-right py-2 px-4">طراح</th>
+          <th class="text-right py-2 px-3">فصل</th>
+          <th class="text-right py-2 px-3">فایل</th>
+          <th class="text-center py-2 px-3">فروش</th>
+          <th class="text-center py-2 px-3">درآمد</th>
+          <th class="text-right py-2 px-3">تاریخ</th>
+        </tr>
+      </thead>
+      <tbody>${rows || '<tr><td colspan="6" class="p-8 text-center text-slate-400">هنوز فایلی نیست</td></tr>'}</tbody>
+    </table>`;
+}
+
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ——— Designers ———
+function byDesigner() {
+  const map = new Map();
+  uploads.forEach(u => {
+    const d = u.meta.designer || 'unknown';
+    if (!map.has(d)) map.set(d, []);
+    map.get(d).push(u);
+  });
+  return map;
+}
+
+function renderDesignerCards() {
+  const map = byDesigner();
+  const cards = [...map.entries()].map(([name, list]) => {
+    const qty = list.reduce((s, u) => s + u.totalQty, 0);
+    const rev = list.reduce((s, u) => s + u.totalRev, 0);
+    const seasons = new Set(list.map(u => u.meta.season)).size;
+    return `
+      <button data-designer="${esc(name)}" class="designer-card card text-right bg-white rounded-2xl border border-slate-100 p-4 shadow-sm w-full">
+        <p class="font-bold text-slate-800 mb-1">${esc(name)}</p>
+        <p class="text-xs text-slate-500 mb-3">${fmt(list.length)} فایل · ${fmt(seasons)} فصل</p>
+        <div class="flex justify-between text-sm">
+          <span class="text-emerald-600 font-semibold">${fmt(qty)} فروش</span>
+          <span class="text-slate-600">${fmtMoney(rev)}</span>
+        </div>
+      </button>`;
+  }).join('');
+  document.getElementById('designerCards').innerHTML = cards || '<p class="text-slate-400 text-sm">طراحی ثبت نشده</p>';
+  document.querySelectorAll('.designer-card').forEach(btn => {
+    btn.onclick = () => openDesigner(btn.dataset.designer);
+  });
+}
+
+function openDesigner(name) {
+  const list = byDesigner().get(name) || [];
+  document.getElementById('designerDetail').classList.remove('hidden');
+  document.getElementById('designerTitle').textContent = name;
+  const qty = list.reduce((s, u) => s + u.totalQty, 0);
+  const rev = list.reduce((s, u) => s + u.totalRev, 0);
+  document.getElementById('designerKpis').innerHTML = [
+    { l: 'فایل‌ها', v: fmt(list.length) },
+    { l: 'فصل‌ها', v: fmt(new Set(list.map(u => u.meta.season)).size) },
+    { l: 'فروش کل', v: fmt(qty) },
+    { l: 'درآمد کل', v: fmtMoney(rev) },
+  ].map(k => `<div class="bg-slate-50 rounded-xl p-3"><p class="text-xs text-slate-500">${k.l}</p><p class="font-bold">${k.v}</p></div>`).join('');
+
+  // season chart
+  const seasonMap = new Map();
+  list.forEach(u => {
+    const s = u.meta.season || 'نامشخص';
+    if (!seasonMap.has(s)) seasonMap.set(s, { qty: 0, rev: 0 });
+    const o = seasonMap.get(s);
+    o.qty += u.totalQty;
+    o.rev += u.totalRev;
+  });
+  const labels = [...seasonMap.keys()];
+  const qtyData = labels.map(l => seasonMap.get(l).qty);
+  if (seasonChart) seasonChart.destroy();
+  seasonChart = new Chart(document.getElementById('designerSeasonChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{ data: qtyData, backgroundColor: '#0ea5e9', borderRadius: 6 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { ticks: { font: { family: 'Vazirmatn', size: 10 }, callback: v => fmt(v) } },
+        x: { ticks: { font: { family: 'Vazirmatn', size: 10 } } }
+      }
+    }
+  });
+
+  document.getElementById('designerFiles').innerHTML = list.map(u => `
+    <div class="flex justify-between gap-2 bg-slate-50 rounded-lg px-3 py-2">
+      <span>${esc(u.meta.season)} · ${esc(u.meta.originalName || '')}</span>
+      <span class="text-emerald-600 font-medium whitespace-nowrap">${fmt(u.totalQty)}</span>
+    </div>
+  `).join('');
+
+  const sel = document.getElementById('designerSeasonSelect');
+  sel.innerHTML = list.map((u, i) => `<option value="${i}">${esc(u.meta.season)} — ${esc(u.meta.originalName || '')}</option>`).join('');
+  const renderProducts = (idx) => {
+    const u = list[idx];
+    if (!u) return;
+    const top = [...u.rows].sort((a, b) => b.qty - a.qty).slice(0, 50);
+    document.getElementById('designerProducts').innerHTML = `
+      <table class="w-full text-sm">
+        <thead class="bg-slate-50 sticky top-0 text-xs text-slate-500">
+          <tr>
+            <th class="text-right py-2 px-3">محصول</th>
+            <th class="text-center py-2 px-3">فروش</th>
+            <th class="text-center py-2 px-3">قیمت</th>
+            <th class="text-center py-2 px-3">مجموع</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${top.map(r => `
+            <tr class="border-t border-slate-50">
+              <td class="py-2 px-3">${esc(r.name)}</td>
+              <td class="text-center py-2 px-3 font-semibold text-emerald-600">${fmt(r.qty)}</td>
+              <td class="text-center py-2 px-3">${r.price ? fmtMoney(r.price) : '—'}</td>
+              <td class="text-center py-2 px-3">${r.total ? fmtMoney(r.total) : '—'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>`;
+  };
+  sel.onchange = () => renderProducts(Number(sel.value));
+  renderProducts(0);
+}
+
+document.getElementById('closeDesigner').onclick = () => {
+  document.getElementById('designerDetail').classList.add('hidden');
+};
+
+// ——— Compare ———
+function fillCompareSelectors() {
+  const seasons = [...new Set(uploads.map(u => u.meta.season))].sort();
+  const designers = [...new Set(uploads.map(u => u.meta.designer))].sort((a, b) => a.localeCompare(b, 'fa'));
+  document.getElementById('compareSeason').innerHTML =
+    `<option value="">همه فصل‌ها</option>` + seasons.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join('');
+  document.getElementById('compareDesigners').innerHTML =
+    designers.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+}
+
+document.getElementById('runCompare').onclick = () => {
+  const season = document.getElementById('compareSeason').value;
+  const sel = document.getElementById('compareDesigners');
+  const chosen = [...sel.selectedOptions].map(o => o.value);
+  if (!chosen.length) {
+    alert('حداقل یک طراح انتخاب کنید');
+    return;
+  }
+
+  const stats = chosen.map(name => {
+    let list = uploads.filter(u => u.meta.designer === name);
+    if (season) list = list.filter(u => u.meta.season === season);
+    const qty = list.reduce((s, u) => s + u.totalQty, 0);
+    const rev = list.reduce((s, u) => s + u.totalRev, 0);
+    const files = list.length;
+    return { name, qty, rev, files };
+  });
+
+  if (cmpQty) cmpQty.destroy();
+  if (cmpRev) cmpRev.destroy();
+  const labels = stats.map(s => s.name);
+  const opts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { ticks: { font: { family: 'Vazirmatn', size: 10 }, callback: v => fmt(v) } },
+      x: { ticks: { font: { family: 'Vazirmatn', size: 10 } } }
+    }
+  };
+  cmpQty = new Chart(document.getElementById('compareQtyChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data: stats.map(s => s.qty), backgroundColor: '#0ea5e9', borderRadius: 6 }] },
+    options: opts
+  });
+  cmpRev = new Chart(document.getElementById('compareRevChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data: stats.map(s => s.rev), backgroundColor: '#f43f5e', borderRadius: 6 }] },
+    options: {
+      ...opts,
+      scales: {
+        ...opts.scales,
+        y: { ticks: { font: { family: 'Vazirmatn', size: 10 }, callback: v => (v >= 1000 ? (v / 1000) + 'k' : fmt(v)) } }
+      }
+    }
+  });
+
+  document.getElementById('compareTable').innerHTML = `
+    <table class="w-full text-sm">
+      <thead class="bg-slate-50 text-xs text-slate-500">
+        <tr>
+          <th class="text-right py-2 px-4">طراح</th>
+          <th class="text-center py-2 px-3">تعداد فایل</th>
+          <th class="text-center py-2 px-3">فروش</th>
+          <th class="text-center py-2 px-3">درآمد</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${stats.map(s => `
+          <tr class="border-t border-slate-50">
+            <td class="py-2.5 px-4 font-medium">${esc(s.name)}</td>
+            <td class="text-center py-2.5 px-3">${fmt(s.files)}</td>
+            <td class="text-center py-2.5 px-3 font-semibold text-emerald-600">${fmt(s.qty)}</td>
+            <td class="text-center py-2.5 px-3">${fmtMoney(s.rev)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+};
+
+// boot
+if (loadSession()) {
+  showApp();
+  loadAll();
+}
+</script>
+</body>
+</html>
