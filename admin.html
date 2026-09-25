@@ -22,10 +22,10 @@
     }
   </script>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
+<body class="text-slate-800 min-h-screen">
 
   <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
-    <div class="bg-white rounded-3xl shadow-lg border border-slate-100 p-8 w-full max-w-md">
+    <div class="glass-strong rounded-[28px] p-8 w-full max-w-md">
       <div class="text-center mb-6">
         <div class="text-4xl mb-2">🔐</div>
         <h1 class="text-xl font-bold">پنل مدیریت فروش</h1>
@@ -51,27 +51,27 @@
           </div>
         </div>
         <p id="loginError" class="text-rose-600 text-sm hidden"></p>
-        <button id="loginBtn" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 rounded-xl transition">ورود</button>
+        <button id="loginBtn" class="btn-ios w-full py-2.5">ورود</button>
       </div>
     </div>
   </div>
 
   <div id="appScreen" class="hidden">
-    <header class="bg-gradient-to-l from-brand-700 to-brand-500 text-white shadow sticky top-0 z-50">
+    <header class="glass-header sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <span class="text-xl">🏷️</span>
           <div>
-            <h1 class="font-bold text-lg leading-tight">پنل مدیریت فروش</h1>
-            <p class="text-xs text-brand-100" id="repoLabel">—</p>
+            <h1 class="font-bold text-lg leading-tight tracking-tight">پنل مدیریت فروش</h1>
+            <p class="text-xs text-ios-secondary" id="repoLabel">—</p>
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button data-view="overview" class="nav-btn bg-white/20 px-3 py-1.5 rounded-lg text-sm font-medium">نمای کلی</button>
-          <button data-view="designers" class="nav-btn bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm">طراح‌ها</button>
-          <button data-view="compare" class="nav-btn bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm">مقایسه</button>
-          <button id="refreshBtn" class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm">بروزرسانی</button>
-          <button id="logoutBtn" class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-sm">خروج</button>
+          <button data-view="overview" class="nav-btn bg-black/5 px-3 py-1.5 text-sm font-semibold text-slate-800">نمای کلی</button>
+          <button data-view="designers" class="nav-btn bg-transparent hover:bg-black/5 px-3 py-1.5 text-sm text-slate-600">طراح‌ها</button>
+          <button data-view="compare" class="nav-btn bg-transparent hover:bg-black/5 px-3 py-1.5 text-sm text-slate-600">مقایسه</button>
+          <button id="refreshBtn" class="nav-btn bg-transparent hover:bg-black/5 px-3 py-1.5 text-sm text-slate-600">بروزرسانی</button>
+          <button id="logoutBtn" class="nav-btn bg-transparent hover:bg-black/5 px-3 py-1.5 text-sm text-slate-600">خروج</button>
         </div>
       </div>
     </header>
@@ -81,7 +81,7 @@
 
       <section id="view-overview" class="space-y-6">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="overviewKpis"></div>
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="glass-card overflow-hidden">
           <div class="px-4 py-3 border-b border-slate-100 font-bold text-sm">آخرین آپلودها</div>
           <div class="overflow-x-auto scrollbar" id="uploadsTable"></div>
         </div>
@@ -114,7 +114,7 @@
       </section>
 
       <section id="view-compare" class="hidden space-y-4">
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+        <div class="glass-card p-4">
           <div class="flex flex-wrap gap-3 items-end">
             <div>
               <label class="text-xs text-slate-500 block mb-1">فصل</label>
@@ -124,20 +124,20 @@
               <label class="text-xs text-slate-500 block mb-1">طراح‌ها (چندتایی با Ctrl/Cmd)</label>
               <select id="compareDesigners" multiple class="border border-slate-200 rounded-xl px-3 py-2 text-sm w-full h-28"></select>
             </div>
-            <button id="runCompare" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-4 py-2 rounded-xl text-sm">مقایسه</button>
+            <button id="runCompare" class="btn-ios text-sm px-4 py-2">مقایسه</button>
           </div>
         </div>
         <div class="grid md:grid-cols-2 gap-4">
-          <div class="bg-white rounded-2xl border border-slate-100 p-4">
+          <div class="glass-card p-4">
             <h3 class="text-sm font-bold mb-2">تعداد فروش</h3>
             <div class="h-56"><canvas id="compareQtyChart"></canvas></div>
           </div>
-          <div class="bg-white rounded-2xl border border-slate-100 p-4">
+          <div class="glass-card p-4">
             <h3 class="text-sm font-bold mb-2">درآمد</h3>
             <div class="h-56"><canvas id="compareRevChart"></canvas></div>
           </div>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="glass-card overflow-hidden">
           <div class="px-4 py-3 border-b border-slate-100 font-bold text-sm">جدول مقایسه</div>
           <div class="overflow-x-auto scrollbar" id="compareTable"></div>
         </div>
