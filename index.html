@@ -22,7 +22,7 @@
     }
   </script>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
+<body class="text-slate-800 min-h-screen">
 
   <!-- Loading Overlay -->
   <div id="loadingOverlay" class="fixed inset-0 bg-white/70 z-[100] hidden flex items-center justify-center">
@@ -33,17 +33,17 @@
   </div>
 
   <!-- Header -->
-  <header class="bg-gradient-to-l from-brand-700 to-brand-500 text-white shadow-lg sticky top-0 z-50">
+  <header class="glass-header sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-xl">🏷️</div>
+        <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-xl bg-white/50 border border-white/60 shadow-sm">🏷️</div>
         <div>
           <h1 class="text-lg font-bold leading-tight">داشبورد فروش استیکر</h1>
-          <p class="text-xs text-brand-100 opacity-90" id="fileName">فایل اکسل را آپلود کنید</p>
+          <p class="text-xs" id="fileName">فایل اکسل را آپلود کنید</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <label class="cursor-pointer bg-white text-brand-700 hover:bg-brand-50 font-semibold text-sm px-4 py-2 rounded-xl shadow transition flex items-center gap-2">
+        <label class="cursor-pointer btn-ios-tinted flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
           آپلود اکسل
           <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden" />
@@ -54,11 +54,11 @@
 
   <!-- Upload Zone -->
   <div id="uploadZone" class="max-w-3xl mx-auto mt-16 px-4">
-    <div class="border-2 border-dashed border-brand-300 bg-white rounded-3xl p-8 md:p-12 text-center shadow-sm hover:border-brand-500 transition" id="dropZone">
+    <div class="p-8 md:p-12 text-center transition" id="dropZone">
       <div class="text-6xl mb-4">📊</div>
       <h2 class="text-xl font-bold text-slate-700 mb-2">فایل فروش فصلی را اینجا رها کنید</h2>
       <p class="text-slate-500 text-sm mb-6">یا روی دکمه آپلود کلیک کنید · فرمت‌های پشتیبانی‌شده: xlsx, xls, csv</p>
-      <label class="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-6 py-3 rounded-xl cursor-pointer shadow transition">
+      <label class="btn-ios cursor-pointer">
         انتخاب فایل
         <input type="file" id="fileInput2" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden" />
       </label>
@@ -73,18 +73,18 @@
 
     <!-- Charts -->
     <section class="grid md:grid-cols-2 gap-4">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+      <div class="glass-card p-4">
         <h3 class="font-bold text-slate-700 mb-3 text-sm">۱۰ محصول پرفروش (تعداد)</h3>
         <div class="h-56"><canvas id="chartQty"></canvas></div>
       </div>
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+      <div class="glass-card p-4">
         <h3 class="font-bold text-slate-700 mb-3 text-sm">۱۰ محصول پردرآمد (مبلغ)</h3>
         <div class="h-56"><canvas id="chartRev"></canvas></div>
       </div>
     </section>
 
     <!-- Filters -->
-    <section class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4">
+    <section class="glass-card p-4">
       <div class="flex flex-wrap gap-3 items-end">
         <div class="flex-1 min-w-[160px]">
           <label class="text-xs font-medium text-slate-500 mb-1 block">جستجو</label>
@@ -110,7 +110,7 @@
         </div>
         <div>
           <label class="text-xs font-medium text-slate-500 mb-1 block">نمایش</label>
-          <div class="flex bg-slate-100 rounded-xl p-0.5">
+          <div class="segmented">
             <button id="viewGrouped" class="view-btn px-3 py-1.5 text-sm rounded-lg bg-white shadow font-medium text-brand-700">گروه‌بندی</button>
             <button id="viewFlat" class="view-btn px-3 py-1.5 text-sm rounded-lg text-slate-600">لیست واریانت</button>
           </div>
@@ -151,11 +151,11 @@
     <div class="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
       <span id="resultCount">—</span>
       <div class="flex items-center gap-3">
-        <button id="exportCsvBtn" class="text-brand-600 hover:text-brand-800 font-medium text-sm flex items-center gap-1">
+        <button id="exportCsvBtn" class="text-ios-blue font-semibold text-sm flex items-center gap-1">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           CSV
         </button>
-        <button id="exportXlsxBtn" class="text-brand-600 hover:text-brand-800 font-medium text-sm flex items-center gap-1">
+        <button id="exportXlsxBtn" class="text-ios-blue font-semibold text-sm flex items-center gap-1">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           Excel
         </button>
@@ -163,7 +163,7 @@
     </div>
 
     <!-- Data Table -->
-    <section class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+    <section class="glass-card overflow-hidden">
       <div class="overflow-x-auto scrollbar max-h-[60vh]" id="tableContainer"></div>
     </section>
 
