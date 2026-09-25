@@ -3,6 +3,10 @@ import { fmt, fmtMoney, escapeHtml as esc } from '../shared/format.js';
 import { decryptBytes, b64ToBytes } from '../shared/crypto.js';
 import { parseExcelBytesSimple } from '../shared/excel.js';
 
+/** سهم طراح از مبلغ کل فروش */
+const DESIGNER_SHARE = 0.3;
+const designerIncome = (totalRev) => totalRev * DESIGNER_SHARE;
+
 let cfg = { token: '', key: '', owner: '', repo: '', branch: 'main' };
 let uploads = []; // { meta, rows, totalQty, totalRev }
 let seasonChart = null, cmpQty = null, cmpRev = null;
@@ -160,7 +164,9 @@ function renderOverview() {
     { label: 'تعداد آپلود', value: fmt(uploads.length) },
     { label: 'طراح یکتا', value: fmt(designers.size) },
     { label: 'فصل‌ها', value: fmt(seasons.size) },
-    { label: 'فروش کل', value: fmt(totalQty) },
+    { label: 'فروش کل (تعداد)', value: fmt(totalQty) },
+    { label: 'مبلغ کل فروش', value: fmtMoney(totalRev) },
+    { label: 'درآمد طراحان (۳۰٪)', value: fmtMoney(designerIncome(totalRev)) },
   ];
   document.getElementById('overviewKpis').innerHTML = kpis.map(k => `
     <div class="card bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
@@ -176,6 +182,7 @@ function renderOverview() {
       <td class="py-2.5 px-3 text-sm text-slate-500">${esc(u.meta.originalName || '')}</td>
       <td class="py-2.5 px-3 text-center font-semibold text-emerald-600">${fmt(u.totalQty)}</td>
       <td class="py-2.5 px-3 text-center text-sm">${fmtMoney(u.totalRev)}</td>
+      <td class="py-2.5 px-3 text-center text-sm font-semibold text-brand-700">${fmtMoney(designerIncome(u.totalRev))}</td>
       <td class="py-2.5 px-3 text-xs text-slate-400">${esc((u.meta.uploadedAt || '').slice(0, 16).replace('T', ' '))}</td>
     </tr>
   `).join('');
@@ -188,11 +195,12 @@ function renderOverview() {
           <th class="text-right py-2 px-3">فصل</th>
           <th class="text-right py-2 px-3">فایل</th>
           <th class="text-center py-2 px-3">فروش</th>
-          <th class="text-center py-2 px-3">درآمد</th>
+          <th class="text-center py-2 px-3">مبلغ کل فروش</th>
+          <th class="text-center py-2 px-3">درآمد طراح (۳۰٪)</th>
           <th class="text-right py-2 px-3">تاریخ</th>
         </tr>
       </thead>
-      <tbody>${rows || '<tr><td colspan="6" class="p-8 text-center text-slate-400">هنوز فایلی نیست</td></tr>'}</tbody>
+      <tbody>${rows || '<tr><td colspan="7" class="p-8 text-center text-slate-400">هنوز فایلی نیست</td></tr>'}</tbody>
     </table>`;
 }
 
@@ -214,15 +222,17 @@ function renderDesignerCards() {
   const cards = [...map.entries()].map(([name, list]) => {
     const qty = list.reduce((s, u) => s + u.totalQty, 0);
     const rev = list.reduce((s, u) => s + u.totalRev, 0);
+    const income = designerIncome(rev);
     const seasons = new Set(list.map(u => u.meta.season)).size;
     return `
       <button data-designer="${esc(name)}" class="designer-card card text-right bg-white rounded-2xl border border-slate-100 p-4 shadow-sm w-full">
         <p class="font-bold text-slate-800 mb-1">${esc(name)}</p>
         <p class="text-xs text-slate-500 mb-3">${fmt(list.length)} فایل · ${fmt(seasons)} فصل</p>
-        <div class="flex justify-between text-sm">
+        <div class="flex justify-between text-sm mb-1">
           <span class="text-emerald-600 font-semibold">${fmt(qty)} فروش</span>
-          <span class="text-slate-600">${fmtMoney(rev)}</span>
+          <span class="text-slate-500 text-xs">مبلغ فروش: ${fmtMoney(rev)}</span>
         </div>
+        <div class="text-sm font-semibold text-brand-700">درآمد طراح (۳۰٪): ${fmtMoney(income)}</div>
       </button>`;
   }).join('');
   document.getElementById('designerCards').innerHTML = cards || '<p class="text-slate-400 text-sm">طراحی ثبت نشده</p>';
@@ -240,8 +250,9 @@ function openDesigner(name) {
   document.getElementById('designerKpis').innerHTML = [
     { l: 'فایل‌ها', v: fmt(list.length) },
     { l: 'فصل‌ها', v: fmt(new Set(list.map(u => u.meta.season)).size) },
-    { l: 'فروش کل', v: fmt(qty) },
-    { l: 'درآمد کل', v: fmtMoney(rev) },
+    { l: 'فروش کل (تعداد)', v: fmt(qty) },
+    { l: 'مبلغ کل فروش', v: fmtMoney(rev) },
+    { l: 'درآمد طراح (۳۰٪)', v: fmtMoney(designerIncome(rev)) },
   ].map(k => `<div class="bg-slate-50 rounded-xl p-3"><p class="text-xs text-slate-500">${k.l}</p><p class="font-bold">${k.v}</p></div>`).join('');
 
   // season chart
@@ -340,8 +351,9 @@ document.getElementById('runCompare').onclick = () => {
     if (season) list = list.filter(u => u.meta.season === season);
     const qty = list.reduce((s, u) => s + u.totalQty, 0);
     const rev = list.reduce((s, u) => s + u.totalRev, 0);
+    const income = designerIncome(rev);
     const files = list.length;
-    return { name, qty, rev, files };
+    return { name, qty, rev, income, files };
   });
 
   if (cmpQty) cmpQty.destroy();
@@ -361,9 +373,10 @@ document.getElementById('runCompare').onclick = () => {
     data: { labels, datasets: [{ data: stats.map(s => s.qty), backgroundColor: '#0ea5e9', borderRadius: 6 }] },
     options: opts
   });
+  // نمودار درآمد طراح (۳۰٪ مبلغ فروش)
   cmpRev = new Chart(document.getElementById('compareRevChart'), {
     type: 'bar',
-    data: { labels, datasets: [{ data: stats.map(s => s.rev), backgroundColor: '#f43f5e', borderRadius: 6 }] },
+    data: { labels, datasets: [{ data: stats.map(s => s.income), backgroundColor: '#f43f5e', borderRadius: 6 }] },
     options: {
       ...opts,
       scales: {
@@ -380,7 +393,8 @@ document.getElementById('runCompare').onclick = () => {
           <th class="text-right py-2 px-4">طراح</th>
           <th class="text-center py-2 px-3">تعداد فایل</th>
           <th class="text-center py-2 px-3">فروش</th>
-          <th class="text-center py-2 px-3">درآمد</th>
+          <th class="text-center py-2 px-3">مبلغ کل فروش</th>
+          <th class="text-center py-2 px-3">درآمد طراح (۳۰٪)</th>
         </tr>
       </thead>
       <tbody>
@@ -390,6 +404,7 @@ document.getElementById('runCompare').onclick = () => {
             <td class="text-center py-2.5 px-3">${fmt(s.files)}</td>
             <td class="text-center py-2.5 px-3 font-semibold text-emerald-600">${fmt(s.qty)}</td>
             <td class="text-center py-2.5 px-3">${fmtMoney(s.rev)}</td>
+            <td class="text-center py-2.5 px-3 font-semibold text-brand-700">${fmtMoney(s.income)}</td>
           </tr>
         `).join('')}
       </tbody>
