@@ -7,7 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
   <script>
@@ -21,10 +20,6 @@
         }
       }
     };
-    if (window.pdfjsLib) {
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
   </script>
 </head>
 <body class="text-slate-800 min-h-screen">
@@ -111,14 +106,15 @@
     <!-- آپلود و گوگل درایو -->
     <section id="view-import" class="hidden space-y-4">
       <div class="glass-card p-4 space-y-3">
-        <h2 class="font-bold text-sm">آپلود فایل محلی (اکسل / PDF)</h2>
-        <input type="file" id="localFile" accept=".xlsx,.xls,.csv,.pdf" multiple
+        <h2 class="font-bold text-sm">آپلود فایل محلی (فقط اکسل)</h2>
+        <input type="file" id="localFile" accept=".xlsx,.xls,.csv" multiple
           class="block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-brand-500 file:text-white file:cursor-pointer" />
+        <p class="text-xs text-slate-500">فرمت‌های مجاز: xlsx ، xls ، csv — فایل PDF پشتیبانی نمی‌شود.</p>
         <p id="localStatus" class="text-xs text-slate-500"></p>
       </div>
       <div class="glass-card p-4 space-y-3">
         <h2 class="font-bold text-sm">ایمپورت از گوگل درایو</h2>
-        <p class="text-xs text-slate-500">لینک پوشه عمومی درایو را بگذارید. فایل‌های xlsx/xls/csv/pdf به ترتیب خوانده و آپلود می‌شوند.</p>
+        <p class="text-xs text-slate-500">لینک پوشه عمومی درایو را بگذارید. فقط فایل‌های xlsx / xls / csv خوانده می‌شوند؛ PDFها رد می‌شوند.</p>
         <input type="url" id="driveUrl" placeholder="لینک پوشه گوگل درایو را وارد کنید"
           class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
         <button id="driveImportBtn" class="btn-ios text-sm px-4 py-2">خواندن و آپلود ترتیبی</button>
