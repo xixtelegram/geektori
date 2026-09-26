@@ -1,0 +1,12 @@
+{
+  "username": "یک اسم خیلی ساده",
+  "displayName": "یک اسم خیلی ساده",
+  "passwordHash": "25b0ac19b1730040ce6c2279d2e4b442ee3aa666dc9f3f644a34ddd9566d1d48",
+  "recoveryHashes": [
+    "6318d22107c07347f3546cf8ca1d6b75f9dc02e3e1e3fd0ba6fd284535e9ad57",
+    "3592aa2b9d79645c2b0341407111a48b39eeebac711014c94ad8d68cb50c785b",
+    "dd01555cffeeea24e872dfcad2a26047a08a3815874e59dd8a7a696c145af7dd",
+    "8c1ccae4ba0cca78b1359bd709574a6b59643374de5973b619c3ab2c130a73a1"
+  ],
+  "createdAt": "2026-09-26T20:14:31.925Z"
+}
