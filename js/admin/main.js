@@ -7,7 +7,14 @@ import { parseExcelBytesSimple } from '../shared/excel.js';
 const DESIGNER_SHARE = 0.3;
 const designerIncome = (totalRev) => totalRev * DESIGNER_SHARE;
 
-let cfg = { token: '', key: '', owner: '', repo: '', branch: 'main' };
+/** ادمین فقط با GITHUB_TOKEN + ENCRYPTION_KEY؛ owner/repo از config */
+let cfg = {
+  token: '',
+  key: '',
+  owner: GITHUB.owner,
+  repo: GITHUB.repo,
+  branch: GITHUB.branch || 'main',
+};
 let uploads = []; // { meta, rows, totalQty, totalRev }
 let seasonChart = null, cmpQty = null, cmpRev = null;
 
@@ -16,14 +23,28 @@ function loadSession() {
   try {
     const s = JSON.parse(sessionStorage.getItem('giktori_admin') || 'null');
     if (s?.token && s?.key) {
-      cfg = s;
+      cfg = {
+        ...s,
+        owner: GITHUB.owner,
+        repo: GITHUB.repo,
+        branch: GITHUB.branch || s.branch || 'main',
+      };
       return true;
     }
   } catch {}
   return false;
 }
 function saveSession() {
-  sessionStorage.setItem('giktori_admin', JSON.stringify(cfg));
+  sessionStorage.setItem(
+    'giktori_admin',
+    JSON.stringify({
+      token: cfg.token,
+      key: cfg.key,
+      owner: cfg.owner,
+      repo: cfg.repo,
+      branch: cfg.branch,
+    })
+  );
 }
 function clearSession() {
   sessionStorage.removeItem('giktori_admin');
@@ -34,16 +55,18 @@ document.getElementById('loginBtn').onclick = async () => {
   err.classList.add('hidden');
   cfg.token = document.getElementById('loginToken').value.trim();
   cfg.key = document.getElementById('loginKey').value.trim();
-  cfg.owner = document.getElementById('loginOwner').value.trim();
-  cfg.repo = document.getElementById('loginRepo').value.trim();
-  if (!cfg.token || !cfg.key || !cfg.owner || !cfg.repo) {
-    err.textContent = 'همه فیلدها لازم است.';
+  cfg.owner = GITHUB.owner;
+  cfg.repo = GITHUB.repo;
+  cfg.branch = GITHUB.branch || 'main';
+
+  if (!cfg.token || !cfg.key) {
+    err.textContent = 'GitHub Token و ENCRYPTION_KEY لازم است.';
     err.classList.remove('hidden');
     return;
   }
   try {
     const res = await gh(`/repos/${cfg.owner}/${cfg.repo}`);
-    if (!res.ok) throw new Error('توکن یا دسترسی ریپو نامعتبر است');
+    if (!res.ok) throw new Error('توکن نامعتبر است یا به ریپو دسترسی ندارد');
     saveSession();
     showApp();
     await loadAll();
