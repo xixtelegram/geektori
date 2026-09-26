@@ -29,27 +29,18 @@
       <div class="text-center mb-6">
         <div class="text-4xl mb-2">🔐</div>
         <h1 class="text-xl font-bold">پنل مدیریت فروش</h1>
-        <p class="text-sm text-slate-500 mt-1">ورود با توکن گیت‌هاب</p>
+        <p class="text-sm text-slate-500 mt-1">ورود فقط با GitHub Token و ENCRYPTION_KEY</p>
       </div>
       <div class="space-y-4">
         <div>
           <label class="text-xs font-medium text-slate-500 mb-1 block">GitHub Token</label>
-          <input type="password" id="loginToken" placeholder="ghp_... یا github_pat_..." class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+          <input type="password" id="loginToken" autocomplete="off" placeholder="ghp_... یا github_pat_..." class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
         </div>
         <div>
-          <label class="text-xs font-medium text-slate-500 mb-1 block">کلید رمزنگاری (همان ENCRYPTION_KEY ورکر)</label>
-          <input type="password" id="loginKey" placeholder="کلید مشترک با Worker" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+          <label class="text-xs font-medium text-slate-500 mb-1 block">ENCRYPTION_KEY</label>
+          <input type="password" id="loginKey" autocomplete="off" placeholder="همان کلید داخل Worker" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="text-xs font-medium text-slate-500 mb-1 block">Owner</label>
-            <input type="text" id="loginOwner" value="xixtelegram" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
-          </div>
-          <div>
-            <label class="text-xs font-medium text-slate-500 mb-1 block">Repo</label>
-            <input type="text" id="loginRepo" value="geektori" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
-          </div>
-        </div>
+        <p class="text-xs text-slate-400">ریپو از تنظیمات پروژه خوانده می‌شود؛ طراح‌ها با یوزر/پسورد خودشان وارد می‌شوند.</p>
         <p id="loginError" class="text-rose-600 text-sm hidden"></p>
         <button id="loginBtn" class="btn-ios w-full py-2.5">ورود</button>
       </div>
