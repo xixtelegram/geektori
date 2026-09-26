@@ -1,0 +1,12 @@
+{
+  "username": "gignin",
+  "displayName": "gignin",
+  "passwordHash": "129ec1ea4572d83dceb938b7b33b398a3421eb7d8afdae8b39bfa30e321a25f2",
+  "recoveryHashes": [
+    "22cd11bd93217f7b913b7bd059ea692906076080d72a62b2d931eeba064c2b20",
+    "2e6d89280778279e47f3d8252f70480522a708bf1ad9065d29adbc7c75fa44ca",
+    "24d47f8d65e610e04464c2b616f1eed42e3a5004e5bc6f8b6e16b28c95cdb967",
+    "c16089b8f7070fd9c8ce8da0a42eb8bcf50fe8a4b6ef5d2f403585db5e5868e1"
+  ],
+  "createdAt": "2026-09-26T20:00:52.331Z"
+}
