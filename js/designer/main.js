@@ -353,19 +353,35 @@ document.getElementById('driveImportBtn').onclick = async () => {
       addLog('فایلی پیدا نشد. پوشه باید عمومی باشد و GOOGLE_API_KEY در ورکر تنظیم شده باشد.');
       return;
     }
-    addLog(`${files.length} فایل پیدا شد. شروع آپلود ترتیبی...`);
+    addLog(`${files.length} فایل پیدا شد. شروع دانلود، پارس و آپلود ترتیبی...`);
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
       addLog(`[${i + 1}/${files.length}] ${f.name} ...`);
       try {
+        // ۱) دانلود از ورکر (base64) تا بتوانیم سمت کلاینت پارس کنیم
+        const fetched = await api('drive_fetch', { fileId: f.id, fileName: f.name });
+        const buffer = b64ToArrayBuffer(fetched.base64);
+        let rows = [];
+        try {
+          rows = await parseFileBuffer(f.name, buffer);
+        } catch (parseErr) {
+          addLog(`  ⚠ پارس نشد (${parseErr.message}) — فقط فایل خام ذخیره می‌شود`, 'text-amber-600');
+        }
+        const summary = (rows || []).map((r) => ({
+          name: r.name,
+          qty: Number(r.qty) || 0,
+          price: Number(r.price) || 0,
+          total: Number(r.total) || 0,
+        }));
         const result = await api('drive_import', {
           fileId: f.id,
           fileName: f.name,
           designer: session.username,
           mimeType: f.mimeType,
+          rowsJson: JSON.stringify(summary),
         });
         if (result.skipped) addLog(`  ⏭ تکراری — رد شد`, 'text-slate-400');
-        else addLog(`  ✓ آپلود شد`, 'text-emerald-600');
+        else addLog(`  ✓ آپلود شد${summary.length ? ` (${summary.length} ردیف)` : ''}`, 'text-emerald-600');
       } catch (err) {
         addLog(`  ✗ ${err.message}`, 'text-rose-600');
       }
@@ -380,11 +396,26 @@ document.getElementById('driveImportBtn').onclick = async () => {
 // ——— حساب ———
 document.getElementById('accName').value = session.displayName || session.username;
 
+function b64ToArrayBuffer(b64) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes.buffer;
+}
+
 document.getElementById('saveNameBtn').onclick = async () => {
   const displayName = document.getElementById('accName').value.trim();
+  const pass = document.getElementById('accOldPass').value;
   document.getElementById('accErr').classList.add('hidden');
+  document.getElementById('accMsg').classList.add('hidden');
+  if (!pass) {
+    document.getElementById('accErr').textContent = 'برای ذخیره نام، رمز فعلی را وارد کنید.';
+    document.getElementById('accErr').classList.remove('hidden');
+    return;
+  }
   try {
-    await api('update_profile', { displayName });
+    const passwordHash = await hashPassword(pass, session.username.toLowerCase());
+    await api('update_profile', { displayName, passwordHash });
     session.displayName = displayName;
     saveSession(session);
     document.getElementById('designerLabel').textContent = displayName;
@@ -401,6 +432,7 @@ document.getElementById('savePassBtn').onclick = async () => {
   const oldPass = document.getElementById('accOldPass').value;
   const newPass = document.getElementById('accNewPass').value;
   document.getElementById('accErr').classList.add('hidden');
+  document.getElementById('accMsg').classList.add('hidden');
   if (newPass.length < 6) {
     document.getElementById('accErr').textContent = 'رمز جدید حداقل ۶ کاراکتر.';
     document.getElementById('accErr').classList.remove('hidden');
@@ -422,13 +454,21 @@ document.getElementById('savePassBtn').onclick = async () => {
 
 document.getElementById('regenCodesBtn').onclick = async () => {
   document.getElementById('accErr').classList.add('hidden');
+  document.getElementById('accMsg').classList.add('hidden');
+  const pass = document.getElementById('accOldPass').value;
+  if (!pass) {
+    document.getElementById('accErr').textContent = 'برای ساخت کد جدید، رمز فعلی را وارد کنید.';
+    document.getElementById('accErr').classList.remove('hidden');
+    return;
+  }
   try {
+    const passwordHash = await hashPassword(pass, session.username.toLowerCase());
     const codes = generateRecoveryCodes(4);
     const recoveryHashes = [];
     for (const c of codes) {
       recoveryHashes.push(await hashPassword(c.replace(/-/g, ''), session.username.toLowerCase() + '-rec'));
     }
-    await api('regen_codes', { recoveryHashes });
+    await api('regen_codes', { recoveryHashes, passwordHash });
     const list = document.getElementById('newCodesList');
     list.innerHTML = codes.map((c) => `<li class="bg-black/5 rounded-xl py-2 tracking-widest">${c}</li>`).join('');
     list.classList.remove('hidden');
