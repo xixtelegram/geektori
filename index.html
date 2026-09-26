@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>داشبورد فروش استیکر | گیکتوری</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/app.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Vazir', 'Tahoma', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: { 50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e' }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="text-slate-800 min-h-screen">
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="fixed inset-0 bg-white/70 z-[100] hidden flex items-center justify-center">
+    <div class="text-center">
+      <div class="spinner mx-auto mb-3"></div>
+      <p class="text-sm font-medium text-slate-600">در حال پردازش فایل...</p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="glass-header sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-xl bg-white/50 border border-white/60 shadow-sm">🏷️</div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight">داشبورد فروش استیکر</h1>
+          <p class="text-xs" id="fileName">فایل اکسل را آپلود کنید</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="cursor-pointer btn-ios-tinted flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          آپلود اکسل
+          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden" />
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <!-- Upload Zone -->
+  <div id="uploadZone" class="max-w-3xl mx-auto mt-16 px-4">
+    <div class="p-8 md:p-12 text-center transition" id="dropZone">
+      <div class="text-6xl mb-4">📊</div>
+      <h2 class="text-xl font-bold text-slate-700 mb-2">فایل فروش فصلی را اینجا رها کنید</h2>
+      <p class="text-slate-500 text-sm mb-6">یا روی دکمه آپلود کلیک کنید · فرمت‌های پشتیبانی‌شده: xlsx, xls, csv</p>
+      <label class="btn-ios cursor-pointer">
+        انتخاب فایل
+        <input type="file" id="fileInput2" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden" />
+      </label>
+    </div>
+  </div>
+
+  <!-- Main Dashboard -->
+  <main id="dashboard" class="hidden max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- KPI Cards -->
+    <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3" id="kpiCards"></section>
+
+    <!-- Charts -->
+    <section class="grid md:grid-cols-2 gap-4">
+      <div class="glass-card p-4">
+        <h3 class="font-bold text-slate-700 mb-3 text-sm">۱۰ محصول پرفروش (تعداد)</h3>
+        <div class="h-56"><canvas id="chartQty"></canvas></div>
+      </div>
+      <div class="glass-card p-4">
+        <h3 class="font-bold text-slate-700 mb-3 text-sm">۱۰ محصول با بیشترین مبلغ فروش</h3>
+        <div class="h-56"><canvas id="chartRev"></canvas></div>
+      </div>
+    </section>
+
+    <!-- Filters -->
+    <section class="glass-card p-4">
+      <div class="flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-[160px]">
+          <label class="text-xs font-medium text-slate-500 mb-1 block">جستجو</label>
+          <input type="text" id="searchInput" placeholder="نام محصول..." class="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+        </div>
+        <div>
+          <label class="text-xs font-medium text-slate-500 mb-1 block">جنس / نوع</label>
+          <select id="filterMaterial" class="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 min-w-[120px]">
+            <option value="">همه</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-slate-500 mb-1 block">سایز</label>
+          <select id="filterSize" class="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 min-w-[110px]">
+            <option value="">همه</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2 pb-1">
+          <label class="flex items-center gap-1.5 text-sm cursor-pointer select-none">
+            <input type="checkbox" id="onlySold" class="rounded text-brand-600 focus:ring-brand-400" checked />
+            فقط فروخته‌شده
+          </label>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-slate-500 mb-1 block">نمایش</label>
+          <div class="segmented">
+            <button id="viewGrouped" class="view-btn px-3 py-1.5 text-sm rounded-lg bg-white shadow font-medium text-brand-700">گروه‌بندی</button>
+            <button id="viewFlat" class="view-btn px-3 py-1.5 text-sm rounded-lg text-slate-600">لیست واریانت</button>
+          </div>
+        </div>
+        <button id="resetFilters" class="text-xs text-slate-500 hover:text-brand-600 px-2 py-2 underline">پاک کردن فیلترها</button>
+      </div>
+
+      <!-- Secondary filters (collapsible on small screens) -->
+      <details class="mt-3 group">
+        <summary class="text-xs font-medium text-slate-500 cursor-pointer select-none flex items-center gap-1">
+          <span class="chevron text-[10px]">▶</span> فیلترهای بیشتر (قیمت و مرتب‌سازی)
+        </summary>
+        <div class="flex flex-wrap gap-3 items-end mt-3 pt-3 border-t border-slate-100">
+          <div>
+            <label class="text-xs font-medium text-slate-500 mb-1 block">حداقل قیمت</label>
+            <input type="number" id="minPrice" placeholder="۰" class="w-28 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-slate-500 mb-1 block">حداکثر قیمت</label>
+            <input type="number" id="maxPrice" placeholder="∞" class="w-28 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-slate-500 mb-1 block">مرتب‌سازی</label>
+            <select id="sortBy" class="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400">
+              <option value="qty-desc">پرفروش‌ترین</option>
+              <option value="rev-desc">پردرآمدترین</option>
+              <option value="price-desc">گران‌ترین</option>
+              <option value="price-asc">ارزان‌ترین</option>
+              <option value="name-asc">نام (الفبا)</option>
+              <option value="variants-desc">بیشترین واریانت</option>
+            </select>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- Results count + Export -->
+    <div class="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-500">
+      <span id="resultCount">—</span>
+      <div class="flex items-center gap-3">
+        <button id="exportCsvBtn" class="text-ios-blue font-semibold text-sm flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          CSV
+        </button>
+        <button id="exportXlsxBtn" class="text-ios-blue font-semibold text-sm flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          Excel
+        </button>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <section class="glass-card overflow-hidden">
+      <div class="overflow-x-auto scrollbar max-h-[60vh]" id="tableContainer"></div>
+    </section>
+
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] hidden px-4 py-2.5 rounded-xl text-sm font-medium shadow-lg max-w-[90vw] text-center transition-opacity"></div>
+
+  <footer class="py-6"></footer>
+
+<script type="module" src="js/dashboard/main.js"></script>
+</body>
+</html>
