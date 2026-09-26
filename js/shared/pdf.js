@@ -5,7 +5,25 @@
 
 function num(v) {
   if (v == null || v === '') return 0;
-  const n = Number(String(v).replace(/,/g, '').replace(/[^\d.-]/g, ''));
+  if (typeof v === 'number') return Number.isFinite(v) ? v : 0;
+  let s = String(v).trim();
+  const fa = '۰۱۲۳۴۵۶۷۸۹';
+  const ar = '٠١٢٣٤٥٦٧٨٩';
+  let out = '';
+  for (const ch of s) {
+    const iFa = fa.indexOf(ch);
+    if (iFa >= 0) {
+      out += String(iFa);
+      continue;
+    }
+    const iAr = ar.indexOf(ch);
+    if (iAr >= 0) {
+      out += String(iAr);
+      continue;
+    }
+    out += ch;
+  }
+  const n = Number(out.replace(/,/g, '').replace(/٫/g, '.').replace(/[^\d.-]/g, ''));
   return Number.isFinite(n) ? n : 0;
 }
 
