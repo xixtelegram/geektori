@@ -163,6 +163,7 @@ document.getElementById('formRecover')?.addEventListener('submit', async (e) => 
   const username = document.getElementById('recName').value.trim();
   const codeRaw = document.getElementById('recCode').value.trim().toUpperCase();
   const newPass = document.getElementById('recNewPass').value;
+  const newPass2 = document.getElementById('recNewPass2')?.value ?? '';
 
   if (!username || !codeRaw) {
     showErr('recErr', 'نام کاربری و کد بازیابی را وارد کنید.');
@@ -170,6 +171,10 @@ document.getElementById('formRecover')?.addEventListener('submit', async (e) => 
   }
   if (newPass.length < 6) {
     showErr('recErr', 'رمز جدید حداقل ۶ کاراکتر باشد.');
+    return;
+  }
+  if (newPass !== newPass2) {
+    showErr('recErr', 'رمز جدید و تکرار آن یکسان نیست.');
     return;
   }
 
