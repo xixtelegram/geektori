@@ -53,11 +53,15 @@ async function api(action, body) {
 
   if (!res.ok || data.error) {
     const errMsg = data.error || res.statusText || 'خطای سرور';
-    if (/TOKEN_HERE|توکن را داخل/i.test(errMsg)) {
-      throw new Error('ورکر deploy شده ولی GITHUB_TOKEN داخل worker.js تنظیم نشده است.');
+    if (/GITHUB_TOKEN|TOKEN_HERE|توکن را داخل/i.test(errMsg)) {
+      throw new Error(
+        'GITHUB_TOKEN داخل worker.js تنظیم نشده. توکن را بگذارید و Worker را دوباره deploy کنید.'
+      );
     }
     if (/ENCRYPTION_KEY|CHANGE_ME/i.test(errMsg)) {
-      throw new Error('ENCRYPTION_KEY داخل worker.js تنظیم نشده است.');
+      throw new Error(
+        'ENCRYPTION_KEY داخل worker.js تنظیم نشده. نسخهٔ جدید Worker را deploy کنید (لاگین دیگر به کلید وابسته نیست).'
+      );
     }
     if (/action نامعتبر/i.test(errMsg)) {
       throw new Error(
