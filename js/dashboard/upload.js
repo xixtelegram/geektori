@@ -40,6 +40,13 @@ export async function uploadToGitHub(file, rawRows) {
     fd.append('salesHash', salesHash);
     fd.append('designer', designer);
     fd.append('season', season);
+    const summary = rawRows.map((r) => ({
+      name: r.name,
+      qty: Number(r.qty) || 0,
+      price: Number(r.price) || 0,
+      total: Number(r.total) || 0,
+    }));
+    fd.append('rowsJson', JSON.stringify(summary));
     await fetch(WORKER_URL, { method: 'POST', body: fd });
   } catch (err) {
     console.error(err);
