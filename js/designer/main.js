@@ -10,8 +10,13 @@ import {
 } from '../shared/auth.js';
 import { seasonToFa, parseMetaFromFilename } from '../shared/seasons.js';
 import { parseExcelBytesSimple } from '../shared/excel.js';
-import { parsePdfBytes } from '../shared/pdf.js';
 import { fmt, fmtMoney, escapeHtml as esc } from '../shared/format.js';
+
+/** فقط اکسل — PDF عمداً غیرفعال است (اعداد فروش اشتباه پارس می‌شد) */
+const EXCEL_EXT = /\.(xlsx|xls|csv)$/i;
+function isExcelFileName(name) {
+  return EXCEL_EXT.test(String(name || ''));
+}
 
 const DESIGNER_SHARE = 0.3;
 const income = (rev) => (rev || 0) * DESIGNER_SHARE;
@@ -79,12 +84,19 @@ async function loadDesignerData() {
   showErr('');
   try {
     const data = await api('designer_data', { designer: session.username });
-    seasonsData = (data.seasons || []).map((s) => ({
-      ...s,
-      seasonFa: seasonToFa(s.season),
-      totalQty: (s.rows || []).reduce((a, r) => a + (Number(r.qty) || 0), 0),
-      totalRev: (s.rows || []).reduce((a, r) => a + (Number(r.total) || 0), 0),
-    }));
+    // فقط فایل‌های اکسل — PDFهای قبلی (اعداد خراب) در پنل نشان داده نمی‌شوند
+    seasonsData = (data.seasons || [])
+      .filter((s) => {
+        const n = s.meta?.originalName || '';
+        if (/\.pdf$/i.test(n)) return false;
+        return true;
+      })
+      .map((s) => ({
+        ...s,
+        seasonFa: seasonToFa(s.season),
+        totalQty: (s.rows || []).reduce((a, r) => a + (Number(r.qty) || 0), 0),
+        totalRev: (s.rows || []).reduce((a, r) => a + (Number(r.total) || 0), 0),
+      }));
     // مرتب‌سازی بر اساس تاریخ آپلود
     seasonsData.sort((a, b) => String(b.meta?.uploadedAt || '').localeCompare(String(a.meta?.uploadedAt || '')));
     renderOverview();
@@ -146,22 +158,53 @@ function renderOverview() {
 
   const tbody = seasonsData.length
     ? `<table class="w-full text-sm"><thead><tr class="text-right text-xs text-slate-500 border-b">
-        <th class="px-3 py-2">فصل</th><th class="px-3 py-2">فایل</th><th class="px-3 py-2">فروش</th><th class="px-3 py-2">مبلغ</th><th class="px-3 py-2">آپلود</th>
+        <th class="px-3 py-2">فصل</th><th class="px-3 py-2">فایل</th><th class="px-3 py-2">فروش</th><th class="px-3 py-2">مبلغ</th><th class="px-3 py-2">آپلود</th><th class="px-3 py-2">عملیات</th>
       </tr></thead><tbody>
       ${seasonsData
-        .map(
-          (s) => `<tr class="border-b border-slate-50">
+        .map((s, idx) => {
+          const hash = esc(s.meta?.salesHash || '');
+          return `<tr class="border-b border-slate-50">
         <td class="px-3 py-2 font-medium">${esc(s.seasonFa)}</td>
         <td class="px-3 py-2 text-xs">${esc(s.meta?.originalName || '—')}</td>
         <td class="px-3 py-2">${fmt(s.totalQty)}</td>
         <td class="px-3 py-2">${fmtMoney(s.totalRev)}</td>
         <td class="px-3 py-2 text-xs">${s.meta?.uploadedAt ? new Date(s.meta.uploadedAt).toLocaleDateString('fa-IR') : '—'}</td>
-      </tr>`
-        )
+        <td class="px-3 py-2">
+          <button type="button" data-delete-hash="${hash}" data-delete-idx="${idx}"
+            class="delete-file-btn text-xs text-rose-600 hover:text-rose-800 hover:underline px-2 py-1 rounded-lg hover:bg-rose-50">
+            حذف
+          </button>
+        </td>
+      </tr>`;
+        })
         .join('')}
       </tbody></table>`
     : '<p class="p-4 text-sm text-slate-500">فایلی نیست. از بخش آپلود یا درایو اضافه کنید.</p>';
   document.getElementById('filesTable').innerHTML = tbody;
+
+  document.querySelectorAll('.delete-file-btn').forEach((btn) => {
+    btn.onclick = () => handleDeleteFile(btn.dataset.deleteHash, Number(btn.dataset.deleteIdx));
+  });
+}
+
+async function handleDeleteFile(salesHash, idx) {
+  const s = seasonsData[idx];
+  const label = s ? `${s.seasonFa} — ${s.meta?.originalName || salesHash}` : salesHash;
+  if (!salesHash) {
+    alert('شناسه فایل نامعتبر است.');
+    return;
+  }
+  if (!confirm(`حذف این فایل؟\n${label}\n\nبعد از حذف می‌توانید دوباره ایمپورت کنید.`)) return;
+
+  try {
+    showLoading(true);
+    await api('delete_upload', { salesHash, designer: session.username });
+    await loadDesignerData();
+  } catch (e) {
+    showErr(e.message || String(e));
+  } finally {
+    showLoading(false);
+  }
 }
 
 function fillSeasonSelects() {
@@ -275,11 +318,10 @@ document.getElementById('runCompare').onclick = () => {
     </tbody></table>`;
 };
 
-// ——— آپلود محلی ———
+// ——— آپلود محلی (فقط اکسل) ———
 async function parseFileBuffer(name, buffer) {
-  const lower = name.toLowerCase();
-  if (lower.endsWith('.pdf')) {
-    return parsePdfBytes(buffer, window.pdfjsLib);
+  if (!isExcelFileName(name)) {
+    throw new Error('فقط فایل اکسل (xlsx / xls / csv) مجاز است. PDF پشتیبانی نمی‌شود.');
   }
   return parseExcelBytesSimple(new Uint8Array(buffer));
 }
@@ -385,14 +427,26 @@ document.getElementById('driveImportBtn').onclick = async () => {
       return;
     }
 
-    addLog(`${files.length} فایل پیدا شد. شروع دانلود، پارس و آپلود ترتیبی...`);
-    setProgress(0, files.length, `۰ از ${files.length} فایل`);
+    // فقط اکسل — PDF را از همان ابتدا رد کن (بدون تماس اضافه به Worker)
+    const excelFiles = files.filter((f) => isExcelFileName(f.name));
+    const pdfSkipped = files.length - excelFiles.length;
+    if (pdfSkipped > 0) {
+      addLog(`${pdfSkipped} فایل PDF نادیده گرفته شد (فقط اکسل مجاز است).`, 'text-amber-600');
+    }
+    if (!excelFiles.length) {
+      addLog('هیچ فایل اکسلی در پوشه نبود.', 'text-rose-600');
+      setProgress(0, 0, 'فایل اکسلی نبود');
+      return;
+    }
 
-    for (let i = 0; i < files.length; i++) {
-      const f = files[i];
+    addLog(`${excelFiles.length} فایل اکسل پیدا شد. شروع دانلود، پارس و آپلود ترتیبی...`);
+    setProgress(0, excelFiles.length, `۰ از ${excelFiles.length} فایل`);
+
+    for (let i = 0; i < excelFiles.length; i++) {
+      const f = excelFiles[i];
       const n = i + 1;
-      setProgress(i, files.length, `[${n}/${files.length}] ${f.name}`);
-      addLog(`[${n}/${files.length}] ${f.name} ...`);
+      setProgress(i, excelFiles.length, `[${n}/${excelFiles.length}] ${f.name}`);
+      addLog(`[${n}/${excelFiles.length}] ${f.name} ...`);
 
       try {
         // ۱) دانلود از ورکر (base64) برای پارس سمت کلاینت
@@ -405,7 +459,17 @@ document.getElementById('driveImportBtn').onclick = async () => {
           rows = await parseFileBuffer(f.name, buffer);
         } catch (parseErr) {
           parseWarnCount++;
-          addLog(`  ⚠ پارس نشد (${parseErr.message}) — فقط فایل خام ذخیره می‌شود`, 'text-amber-600');
+          addLog(`  ⚠ پارس نشد (${parseErr.message}) — رد شد`, 'text-amber-600');
+          errCount++;
+          setProgress(n, excelFiles.length, `[${n}/${excelFiles.length}] خطا در پارس`);
+          continue;
+        }
+        if (!rows?.length) {
+          parseWarnCount++;
+          addLog(`  ⚠ ردیفی استخراج نشد — رد شد`, 'text-amber-600');
+          errCount++;
+          setProgress(n, excelFiles.length, `[${n}/${excelFiles.length}] بدون ردیف`);
+          continue;
         }
 
         const summary = (rows || []).map((r) => ({
@@ -427,6 +491,10 @@ document.getElementById('driveImportBtn').onclick = async () => {
         if (result.skipped) {
           skipCount++;
           addLog(`  ⏭ تکراری — رد شد`, 'text-slate-400');
+        } else if (result.updated) {
+          okCount++;
+          const rc = summary.length || result.rowCount || 0;
+          addLog(`  ↻ به‌روز شد (بازنویسی داده‌ها)${rc ? ` — ${rc} ردیف` : ''}`, 'text-sky-600');
         } else {
           okCount++;
           const rc = summary.length || result.rowCount || 0;
@@ -437,15 +505,16 @@ document.getElementById('driveImportBtn').onclick = async () => {
         addLog(`  ✗ ${err.message || err}`, 'text-rose-600');
       }
 
-      setProgress(n, files.length, `[${n}/${files.length}] انجام شد`);
+      setProgress(n, excelFiles.length, `[${n}/${excelFiles.length}] انجام شد`);
     }
 
     // خلاصه نهایی
     const summaryLine =
       `تمام. موفق: ${okCount} | تکراری: ${skipCount} | خطا: ${errCount}` +
+      (pdfSkipped ? ` | PDF ردشده: ${pdfSkipped}` : '') +
       (parseWarnCount ? ` | هشدار پارس: ${parseWarnCount}` : '');
     addLog(summaryLine, errCount ? 'text-rose-700 font-semibold' : 'text-emerald-700 font-semibold');
-    setProgress(files.length, files.length, summaryLine);
+    setProgress(excelFiles.length, excelFiles.length, summaryLine);
 
     if (okCount > 0 || skipCount > 0) {
       await loadDesignerData();
