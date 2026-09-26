@@ -122,6 +122,14 @@
         <input type="url" id="driveUrl" placeholder="لینک پوشه گوگل درایو را وارد کنید"
           class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
         <button id="driveImportBtn" class="btn-ios text-sm px-4 py-2">خواندن و آپلود ترتیبی</button>
+        <div id="driveProgressWrap" class="hidden space-y-1">
+          <div class="flex justify-between text-xs text-slate-500">
+            <span id="driveProgressText">در حال آماده‌سازی...</span>
+          </div>
+          <div class="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+            <div id="driveProgressBar" class="h-full bg-brand-500 transition-all duration-300 rounded-full" style="width:0%"></div>
+          </div>
+        </div>
         <div id="driveLog" class="text-xs space-y-1 max-h-48 overflow-y-auto scrollbar text-slate-600"></div>
       </div>
     </section>
