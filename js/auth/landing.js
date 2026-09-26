@@ -18,12 +18,15 @@ function showErr(id, msg) {
 function setBusy(form, busy) {
   const btn = form?.querySelector('button[type="submit"]');
   if (!btn) return;
+  if (!btn.dataset.label) btn.dataset.label = btn.textContent;
   btn.disabled = !!busy;
   btn.style.opacity = busy ? '0.7' : '';
+  btn.textContent = busy ? 'لطفاً صبر کنید…' : btn.dataset.label;
 }
 
 async function api(action, body) {
-  if (!WORKER_URL) throw new Error('آدرس ورکر تنظیم نشده است');
+  if (!WORKER_URL) throw new Error('آدرس ورکر تنظیم نشده است (js/config.js)');
+
   let res;
   try {
     res = await fetch(WORKER_URL, {
@@ -34,14 +37,38 @@ async function api(action, body) {
   } catch {
     throw new Error('اتصال به سرور برقرار نشد. اینترنت یا آدرس ورکر را بررسی کنید.');
   }
-  const data = await res.json().catch(() => ({}));
+
+  const rawText = await res.text();
+  let data = {};
+  try {
+    data = rawText ? JSON.parse(rawText) : {};
+  } catch {
+    if (/FormData|Content-Type|multipart/i.test(rawText)) {
+      throw new Error(
+        'ورکر هنوز نسخهٔ قدیمی است. فایل worker/worker.js جدید را در Cloudflare deploy کنید و GITHUB_TOKEN و ENCRYPTION_KEY را داخل آن بگذارید.'
+      );
+    }
+    throw new Error(rawText.slice(0, 200) || 'پاسخ نامعتبر از سرور');
+  }
+
   if (!res.ok || data.error) {
-    throw new Error(data.error || res.statusText || 'خطای سرور');
+    const errMsg = data.error || res.statusText || 'خطای سرور';
+    if (/TOKEN_HERE|توکن را داخل/i.test(errMsg)) {
+      throw new Error('ورکر deploy شده ولی GITHUB_TOKEN داخل worker.js تنظیم نشده است.');
+    }
+    if (/ENCRYPTION_KEY|CHANGE_ME/i.test(errMsg)) {
+      throw new Error('ENCRYPTION_KEY داخل worker.js تنظیم نشده است.');
+    }
+    if (/action نامعتبر/i.test(errMsg)) {
+      throw new Error(
+        'ورکر از ورود پشتیبانی نمی‌کند. worker/worker.js جدید را دوباره deploy کنید.'
+      );
+    }
+    throw new Error(errMsg);
   }
   return data;
 }
 
-// ——— ورود ———
 document.getElementById('formLogin')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   showErr('loginErr', '');
@@ -68,7 +95,6 @@ document.getElementById('formLogin')?.addEventListener('submit', async (e) => {
   }
 });
 
-// ——— ثبت‌نام ———
 document.getElementById('formRegister')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   showErr('regErr', '');
@@ -117,7 +143,6 @@ document.getElementById('formRegister')?.addEventListener('submit', async (e) =>
         .map((c) => `<li class="bg-black/5 rounded-xl py-2 tracking-widest">${c}</li>`)
         .join('');
     }
-    // فقط کارت ورود را مخفی کن (نه باکس کدها)
     document.getElementById('authCard')?.classList.add('hidden');
     document.getElementById('recoveryBox')?.classList.remove('hidden');
   } catch (err) {
@@ -131,7 +156,6 @@ document.getElementById('goToPanel')?.addEventListener('click', () => {
   location.href = 'designer.html';
 });
 
-// ——— بازیابی ———
 document.getElementById('formRecover')?.addEventListener('submit', async (e) => {
   e.preventDefault();
   showErr('recErr', '');
