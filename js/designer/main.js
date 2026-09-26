@@ -334,45 +334,88 @@ document.getElementById('localFile').addEventListener('change', async (e) => {
 document.getElementById('driveImportBtn').onclick = async () => {
   const url = document.getElementById('driveUrl').value.trim();
   const log = document.getElementById('driveLog');
+  const btn = document.getElementById('driveImportBtn');
+  const progressWrap = document.getElementById('driveProgressWrap');
+  const progressBar = document.getElementById('driveProgressBar');
+  const progressText = document.getElementById('driveProgressText');
+
   log.innerHTML = '';
   const addLog = (t, cls = '') => {
     const d = document.createElement('div');
     d.className = cls;
     d.textContent = t;
     log.appendChild(d);
+    log.scrollTop = log.scrollHeight;
   };
+
+  const setProgress = (current, total, label) => {
+    if (progressWrap) progressWrap.classList.remove('hidden');
+    const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+    if (progressBar) progressBar.style.width = pct + '%';
+    if (progressText) {
+      progressText.textContent =
+        label || (total ? `${current} از ${total} فایل (${pct}٪)` : 'در حال آماده‌سازی...');
+    }
+  };
+
   if (!url) {
     addLog('لینک را وارد کنید', 'text-rose-600');
     return;
   }
+
+  btn.disabled = true;
+  btn.classList.add('opacity-60', 'cursor-not-allowed');
+  const btnLabel = btn.textContent;
+  btn.textContent = 'در حال ایمپورت...';
+
+  let okCount = 0;
+  let skipCount = 0;
+  let errCount = 0;
+  let parseWarnCount = 0;
+
+  setProgress(0, 0, 'در حال دریافت فهرست فایل‌ها از درایو...');
   addLog('در حال دریافت فهرست فایل‌ها از درایو...');
+
   try {
     const list = await api('drive_list', { folderUrl: url });
     const files = list.files || [];
     if (!files.length) {
-      addLog('فایلی پیدا نشد. پوشه باید عمومی باشد و GOOGLE_API_KEY در ورکر تنظیم شده باشد.');
+      addLog('فایلی پیدا نشد. پوشه باید عمومی باشد و GOOGLE_API_KEY در ورکر تنظیم شده باشد.', 'text-rose-600');
+      setProgress(0, 0, 'فایلی پیدا نشد');
       return;
     }
+
     addLog(`${files.length} فایل پیدا شد. شروع دانلود، پارس و آپلود ترتیبی...`);
+    setProgress(0, files.length, `۰ از ${files.length} فایل`);
+
     for (let i = 0; i < files.length; i++) {
       const f = files[i];
-      addLog(`[${i + 1}/${files.length}] ${f.name} ...`);
+      const n = i + 1;
+      setProgress(i, files.length, `[${n}/${files.length}] ${f.name}`);
+      addLog(`[${n}/${files.length}] ${f.name} ...`);
+
       try {
-        // ۱) دانلود از ورکر (base64) تا بتوانیم سمت کلاینت پارس کنیم
+        // ۱) دانلود از ورکر (base64) برای پارس سمت کلاینت
         const fetched = await api('drive_fetch', { fileId: f.id, fileName: f.name });
+        if (!fetched?.base64) throw new Error('پاسخ دانلود خالی بود');
         const buffer = b64ToArrayBuffer(fetched.base64);
+
         let rows = [];
         try {
           rows = await parseFileBuffer(f.name, buffer);
         } catch (parseErr) {
+          parseWarnCount++;
           addLog(`  ⚠ پارس نشد (${parseErr.message}) — فقط فایل خام ذخیره می‌شود`, 'text-amber-600');
         }
+
         const summary = (rows || []).map((r) => ({
           name: r.name,
           qty: Number(r.qty) || 0,
           price: Number(r.price) || 0,
           total: Number(r.total) || 0,
         }));
+
+        // ۲) آپلود + ذخیره ردیف‌ها در meta
         const result = await api('drive_import', {
           fileId: f.id,
           fileName: f.name,
@@ -380,16 +423,41 @@ document.getElementById('driveImportBtn').onclick = async () => {
           mimeType: f.mimeType,
           rowsJson: JSON.stringify(summary),
         });
-        if (result.skipped) addLog(`  ⏭ تکراری — رد شد`, 'text-slate-400');
-        else addLog(`  ✓ آپلود شد${summary.length ? ` (${summary.length} ردیف)` : ''}`, 'text-emerald-600');
+
+        if (result.skipped) {
+          skipCount++;
+          addLog(`  ⏭ تکراری — رد شد`, 'text-slate-400');
+        } else {
+          okCount++;
+          const rc = summary.length || result.rowCount || 0;
+          addLog(`  ✓ آپلود شد${rc ? ` (${rc} ردیف)` : ''}`, 'text-emerald-600');
+        }
       } catch (err) {
-        addLog(`  ✗ ${err.message}`, 'text-rose-600');
+        errCount++;
+        addLog(`  ✗ ${err.message || err}`, 'text-rose-600');
       }
+
+      setProgress(n, files.length, `[${n}/${files.length}] انجام شد`);
     }
-    addLog('تمام.');
-    await loadDesignerData();
+
+    // خلاصه نهایی
+    const summaryLine =
+      `تمام. موفق: ${okCount} | تکراری: ${skipCount} | خطا: ${errCount}` +
+      (parseWarnCount ? ` | هشدار پارس: ${parseWarnCount}` : '');
+    addLog(summaryLine, errCount ? 'text-rose-700 font-semibold' : 'text-emerald-700 font-semibold');
+    setProgress(files.length, files.length, summaryLine);
+
+    if (okCount > 0 || skipCount > 0) {
+      await loadDesignerData();
+    }
   } catch (err) {
+    errCount++;
     addLog('خطا: ' + (err.message || err), 'text-rose-600');
+    setProgress(0, 0, 'ایمپورت متوقف شد');
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove('opacity-60', 'cursor-not-allowed');
+    btn.textContent = btnLabel;
   }
 };
 
