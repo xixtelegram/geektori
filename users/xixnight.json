@@ -1,0 +1,12 @@
+{
+  "username": "xixnight",
+  "displayName": "xixnight",
+  "passwordHash": "60f687b3639023b7594126af18504cc88972fbf4fa5052f89f33d956d950346c",
+  "recoveryHashes": [
+    "54cd6669bc48acd5bae250d34a45bb866fb393a3d5064f4a896cf55d39f3d807",
+    "477c6f0dba5bcef16fe53b475c430050eeae8d3d2fb36c7ff2f2476e0a80317c",
+    "dea59b9b6f6a57d0db060a78b47d90bb42883e1294a55fe14b55ad3138230e7b",
+    "c2b8de5164c3a4fc981c1d150da465796a0ebba0a799a7cf0db99ba8d60e64fb"
+  ],
+  "createdAt": "2026-09-26T18:38:28.615Z"
+}
