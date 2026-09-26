@@ -42,11 +42,7 @@ export function seasonKey(raw) {
 /** از نام فایل: «XIXnight - Autumn 1403.xlsx» یا «.pdf» */
 export function parseMetaFromFilename(filename) {
   let base = String(filename || 'upload')
-    .replace(/\.xlsx\.xls$/i, '')
-    .replace(/\.xlsx$/i, '')
-    .replace(/\.xls$/i, '')
-    .replace(/\.csv$/i, '')
-    .replace(/\.pdf$/i, '')
+    .replace(/\.(xlsx|xls|csv|pdf)$/i, '')
     .trim();
   const parts = base.split(/\s*[-–—]\s*/).map((p) => p.trim()).filter(Boolean);
   let designer = 'unknown';
