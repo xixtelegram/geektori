@@ -19,6 +19,29 @@
       }
     }
   </script>
+  <style>
+    .tab-btn {
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      border: none;
+      background: transparent;
+      transition: background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
+    }
+    .tab-btn.is-active {
+      background: #fff !important;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      font-weight: 600;
+      color: #1e293b;
+    }
+    .tab-btn:not(.is-active) {
+      font-weight: 500;
+      color: #64748b;
+    }
+    .tab-btn:hover:not(.is-active) {
+      background: rgba(255,255,255,0.45);
+    }
+  </style>
 </head>
 <body class="text-slate-800 min-h-screen">
 
@@ -29,16 +52,16 @@
       <p class="text-sm text-slate-500 mt-1">پنل فروش طراحان استیکر</p>
     </div>
 
-    <div class="glass-strong rounded-[28px] p-6 w-full max-w-md space-y-4">
+    <div id="authCard" class="glass-strong rounded-[28px] p-6 w-full max-w-md space-y-4">
       <!-- تب‌ها -->
-      <div class="flex rounded-2xl bg-black/5 p-1 gap-1">
-        <button type="button" data-tab="login" class="tab-btn flex-1 py-2 text-sm font-semibold rounded-xl bg-white shadow-sm">ورود</button>
-        <button type="button" data-tab="register" class="tab-btn flex-1 py-2 text-sm font-medium rounded-xl text-slate-600">ساخت حساب</button>
-        <button type="button" data-tab="recover" class="tab-btn flex-1 py-2 text-sm font-medium rounded-xl text-slate-600">بازیابی</button>
+      <div class="flex rounded-2xl bg-black/5 p-1 gap-1" role="tablist">
+        <button type="button" data-tab="login" class="tab-btn is-active flex-1 py-2.5 text-sm rounded-xl">ورود</button>
+        <button type="button" data-tab="register" class="tab-btn flex-1 py-2.5 text-sm rounded-xl">ساخت حساب</button>
+        <button type="button" data-tab="recover" class="tab-btn flex-1 py-2.5 text-sm rounded-xl">بازیابی</button>
       </div>
 
       <!-- ورود -->
-      <form id="formLogin" class="space-y-3">
+      <form id="formLogin" class="space-y-3" data-panel="login">
         <div>
           <label class="text-xs font-medium text-slate-500 mb-1 block">نام کاربری (نام طراح)</label>
           <input type="text" id="loginName" autocomplete="username" required
@@ -54,7 +77,7 @@
       </form>
 
       <!-- ثبت‌نام -->
-      <form id="formRegister" class="space-y-3 hidden">
+      <form id="formRegister" class="space-y-3 hidden" data-panel="register">
         <div>
           <label class="text-xs font-medium text-slate-500 mb-1 block">نام طراح (همان نام فایل‌های فروش)</label>
           <input type="text" id="regName" required
@@ -75,7 +98,7 @@
       </form>
 
       <!-- بازیابی با کد یک‌بارمصرف -->
-      <form id="formRecover" class="space-y-3 hidden">
+      <form id="formRecover" class="space-y-3 hidden" data-panel="recover">
         <div>
           <label class="text-xs font-medium text-slate-500 mb-1 block">نام کاربری</label>
           <input type="text" id="recName" required
@@ -101,7 +124,7 @@
       <h2 class="font-bold text-center">🔐 کدهای بازیابی (یک‌بارمصرف)</h2>
       <p class="text-xs text-slate-500 text-center">این ۴ کد را در جای امن ذخیره کنید. هر کد فقط یک بار قابل استفاده است.</p>
       <ul id="recoveryList" class="space-y-2 font-mono text-center text-sm"></ul>
-      <button id="goToPanel" class="btn-ios w-full py-2.5">ورود به پنل طراح</button>
+      <button type="button" id="goToPanel" class="btn-ios w-full py-2.5">ورود به پنل طراح</button>
     </div>
 
     <p class="text-xs text-slate-400 mt-6 text-center">
@@ -109,6 +132,37 @@
     </p>
   </div>
 
+  <!-- سوییچ تب بدون وابستگی به ماژول — همیشه کار می‌کند -->
+  <script>
+    (function () {
+      function showTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(function (b) {
+          b.classList.toggle('is-active', b.getAttribute('data-tab') === tab);
+        });
+        document.querySelectorAll('[data-panel]').forEach(function (panel) {
+          if (panel.getAttribute('data-panel') === tab) {
+            panel.classList.remove('hidden');
+          } else {
+            panel.classList.add('hidden');
+          }
+        });
+        ['loginErr', 'regErr', 'recErr'].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.classList.add('hidden');
+        });
+      }
+
+      document.querySelectorAll('.tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          showTab(btn.getAttribute('data-tab'));
+        });
+      });
+
+      window.__giktoriShowTab = showTab;
+    })();
+  </script>
   <script type="module" src="js/auth/landing.js"></script>
 </body>
 </html>
