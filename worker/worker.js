@@ -73,6 +73,8 @@ async function handleJsonAction(body) {
       return designerData(body);
     case 'drive_list':
       return driveList(body);
+    case 'drive_fetch':
+      return driveFetch(body);
     case 'drive_import':
       return driveImport(body);
     default:
@@ -279,26 +281,49 @@ async function driveList({ folderUrl }) {
   return json({ ok: true, files });
 }
 
-async function driveImport({ fileId, fileName, designer, mimeType }) {
-  if (!fileId || !designer) return json({ error: 'fileId و designer لازم است' }, 400);
+/** دانلود فایل از درایو و برگرداندن base64 برای پارس سمت کلاینت */
+async function driveFetch({ fileId, fileName }) {
+  if (!fileId) return json({ error: 'fileId لازم است' }, 400);
+  const buffer = await downloadDriveFile(fileId);
+  if (!buffer || !buffer.byteLength) {
+    return json({ error: 'دانلود فایل از درایو ناموفق یا فایل خالی است' }, 400);
+  }
+  // محدودیت منطقی برای جلوگیری از پاسخ‌های خیلی بزرگ (حدود ۱۵ مگابایت base64)
+  if (buffer.byteLength > 12 * 1024 * 1024) {
+    return json({ error: 'حجم فایل بیش از حد مجاز برای ایمپورت است (حداکثر ۱۲ مگابایت)' }, 400);
+  }
+  return json({
+    ok: true,
+    fileName: fileName || 'drive-file',
+    size: buffer.byteLength,
+    base64: arrayBufferToBase64(buffer),
+  });
+}
 
-  // دانلود فایل عمومی
+async function downloadDriveFile(fileId) {
   let downloadUrl = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
   if (GOOGLE_API_KEY) downloadUrl += `&key=${GOOGLE_API_KEY}`;
 
   const res = await fetch(downloadUrl);
-  if (!res.ok) {
-    // fallback: لینک uc
-    const uc = await fetch(`https://drive.google.com/uc?export=download&id=${fileId}`);
-    if (!uc.ok) return json({ error: 'دانلود فایل از درایو ناموفق' }, 400);
-    const buffer = await uc.arrayBuffer();
-    return processDownloadedFile(buffer, fileName || 'drive-file', designer);
-  }
-  const buffer = await res.arrayBuffer();
-  return processDownloadedFile(buffer, fileName || 'drive-file', designer);
+  if (res.ok) return res.arrayBuffer();
+
+  // fallback: لینک uc (برای فایل‌های عمومی کوچک)
+  const uc = await fetch(`https://drive.google.com/uc?export=download&id=${fileId}`);
+  if (!uc.ok) return null;
+  return uc.arrayBuffer();
 }
 
-async function processDownloadedFile(buffer, fileName, designer) {
+async function driveImport({ fileId, fileName, designer, mimeType, rowsJson }) {
+  if (!fileId || !designer) return json({ error: 'fileId و designer لازم است' }, 400);
+
+  const buffer = await downloadDriveFile(fileId);
+  if (!buffer || !buffer.byteLength) {
+    return json({ error: 'دانلود فایل از درایو ناموفق' }, 400);
+  }
+  return processDownloadedFile(buffer, fileName || 'drive-file', designer, rowsJson);
+}
+
+async function processDownloadedFile(buffer, fileName, designer, rowsJson) {
   const hashBuf = await crypto.subtle.digest('SHA-256', buffer);
   const salesHash = [...new Uint8Array(hashBuf)].map((b) => b.toString(16).padStart(2, '0')).join('');
   const shortHash = salesHash.slice(0, 16);
@@ -311,10 +336,28 @@ async function processDownloadedFile(buffer, fileName, designer) {
   // استخراج فصل از نام فایل
   let season = 'نامشخص';
   const base = String(fileName)
-    .replace(/\.xlsx\.xls$/i, '')
-    .replace(/\.(xlsx|xls|csv|pdf)$/i, '');
+    .replace(/\.(xlsx|xls|csv|pdf)$/i, '')
+    .trim();
   const parts = base.split(/\s*[-–—]\s*/).map((p) => p.trim()).filter(Boolean);
   if (parts.length >= 2) season = parts.slice(1).join(' - ');
+
+  // ردیف‌های پارس‌شده از کلاینت (اکسل/PDF)
+  let rowsSummary = [];
+  if (rowsJson && typeof rowsJson === 'string') {
+    try {
+      const parsed = JSON.parse(rowsJson);
+      if (Array.isArray(parsed)) {
+        rowsSummary = parsed.slice(0, 5000).map((r) => ({
+          name: String(r.name || '').trim() || '—',
+          qty: Number(r.qty) || 0,
+          price: Number(r.price) || 0,
+          total: Number(r.total) || 0,
+        }));
+      }
+    } catch {
+      // نادیده بگیر — فایل خام ذخیره می‌شود
+    }
+  }
 
   const originalName = sanitizeFilename(fileName);
   const encPayload = await encryptBuffer(buffer, ENCRYPTION_KEY);
@@ -325,7 +368,7 @@ async function processDownloadedFile(buffer, fileName, designer) {
     originalName,
     uploadedAt: new Date().toISOString(),
     size: buffer.byteLength,
-    rows: [],
+    rows: rowsSummary,
     source: 'google-drive',
   };
 
@@ -335,7 +378,7 @@ async function processDownloadedFile(buffer, fileName, designer) {
     arrayBufferToBase64(new TextEncoder().encode(JSON.stringify(meta, null, 2))),
     `meta drive: ${designer} / ${season}`
   );
-  return json({ ok: true, skipped: false, meta });
+  return json({ ok: true, skipped: false, meta, rowCount: rowsSummary.length });
 }
 
 // ——— GitHub helpers ———
