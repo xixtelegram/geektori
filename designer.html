@@ -131,17 +131,18 @@
       <div class="glass-card p-4 space-y-3">
         <h2 class="font-bold text-sm">تغییر نام نمایشی</h2>
         <input type="text" id="accName" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm" />
+        <p class="text-xs text-slate-500">برای ذخیره نام، رمز فعلی را در بخش زیر وارد کنید.</p>
         <button id="saveNameBtn" class="btn-ios text-sm px-4 py-2">ذخیره نام</button>
       </div>
       <div class="glass-card p-4 space-y-3">
         <h2 class="font-bold text-sm">تغییر رمز عبور</h2>
-        <input type="password" id="accOldPass" placeholder="رمز فعلی" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm" />
+        <input type="password" id="accOldPass" placeholder="رمز فعلی (برای تأیید هویت هم لازم است)" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm" />
         <input type="password" id="accNewPass" placeholder="رمز جدید" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm" />
         <button id="savePassBtn" class="btn-ios text-sm px-4 py-2">تغییر رمز</button>
       </div>
       <div class="glass-card p-4 space-y-3">
         <h2 class="font-bold text-sm">رمزهای یک‌بارمصرف</h2>
-        <p class="text-xs text-slate-500">۴ کد بازیابی دارید. می‌توانید مجموعه جدید بسازید (کدهای قبلی باطل می‌شوند).</p>
+        <p class="text-xs text-slate-500">۴ کد بازیابی دارید. می‌توانید مجموعه جدید بسازید (کدهای قبلی باطل می‌شوند). برای ساخت کد جدید، رمز فعلی را وارد کنید.</p>
         <button id="regenCodesBtn" class="btn-ios text-sm px-4 py-2">ایجاد ۴ رمز یک‌بارمصرف جدید</button>
         <ul id="newCodesList" class="hidden space-y-2 font-mono text-center text-sm"></ul>
       </div>
