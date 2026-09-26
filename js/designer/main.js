@@ -29,7 +29,8 @@ if (!session?.username) {
 document.getElementById('designerLabel').textContent = session.displayName || session.username;
 
 let seasonsData = []; // { season, seasonFa, meta, rows, totalQty, totalRev }
-let seasonChart = null;
+let seasonTopQtyChart = null;
+let seasonTopRevChart = null;
 let cmpQtyChart = null;
 let cmpRevChart = null;
 
@@ -208,31 +209,74 @@ async function handleDeleteFile(salesHash, idx) {
 }
 
 function fillSeasonSelects() {
-  const opts = seasonsData
-    .map((s, i) => `<option value="${i}">${esc(s.seasonFa)} (${esc(s.meta?.originalName || '')})</option>`)
-    .join('');
-  document.getElementById('seasonSelect').innerHTML = opts || '<option value="">—</option>';
+  const opts =
+    `<option value="all">همه فصل‌ها</option>` +
+    seasonsData
+      .map(
+        (s, i) =>
+          `<option value="${i}">${esc(s.seasonFa)}${s.meta?.originalName ? ' — ' + esc(s.meta.originalName) : ''}</option>`
+      )
+      .join('');
+  document.getElementById('seasonSelect').innerHTML = opts || '<option value="all">—</option>';
   document.getElementById('compareSeasons').innerHTML = seasonsData
     .map((s, i) => `<option value="${i}">${esc(s.seasonFa)}</option>`)
     .join('');
-  if (seasonsData.length) renderSeasonDetail(0);
+  renderSeasonDetail('all');
 }
 
 document.getElementById('seasonSelect').addEventListener('change', (e) => {
-  renderSeasonDetail(Number(e.target.value));
+  const v = e.target.value;
+  renderSeasonDetail(v === 'all' ? 'all' : Number(v));
 });
 
+function shortLabel(name, max = 22) {
+  const s = String(name || '');
+  return s.length > max ? s.slice(0, max - 1) + '…' : s;
+}
+
+function destroyChart(ch) {
+  if (ch) {
+    try {
+      ch.destroy();
+    } catch {}
+  }
+  return null;
+}
+
 function renderSeasonDetail(idx) {
-  const s = seasonsData[idx];
-  if (!s) return;
-  const products = productAgg(s.rows).sort((a, b) => b.qty - a.qty);
-  const top = products[0];
+  const isAll = idx === 'all' || idx === '' || idx == null;
+  let rows = [];
+  let totalQty = 0;
+  let totalRev = 0;
+  let scopeLabel = 'همه فصل‌ها';
+
+  if (isAll) {
+    rows = seasonsData.flatMap((s) => s.rows || []);
+    totalQty = seasonsData.reduce((a, s) => a + (s.totalQty || 0), 0);
+    totalRev = seasonsData.reduce((a, s) => a + (s.totalRev || 0), 0);
+  } else {
+    const s = seasonsData[idx];
+    if (!s) return;
+    rows = s.rows || [];
+    totalQty = s.totalQty || 0;
+    totalRev = s.totalRev || 0;
+    scopeLabel = s.seasonFa;
+  }
+
+  const products = productAgg(rows);
+  const byQty = [...products].filter((p) => p.qty > 0).sort((a, b) => b.qty - a.qty);
+  const byRev = [...products].filter((p) => p.rev > 0).sort((a, b) => b.rev - a.rev);
+  const topQty = byQty[0];
+  const topRev = byRev[0];
+
+  const hint = document.getElementById('seasonFilterHint');
+  if (hint) hint.textContent = `نمایش: ${scopeLabel} — ۱۰ محصول برتر از نظر تعداد و مبلغ`;
 
   const kpis = [
     { label: 'محصول یکتا', value: fmt(products.length) },
-    { label: 'فروش فصل', value: fmt(s.totalQty) },
-    { label: 'مبلغ فروش', value: fmtMoney(s.totalRev) },
-    { label: 'درآمد (۳۰٪)', value: fmtMoney(income(s.totalRev)) },
+    { label: isAll ? 'فروش کل' : 'فروش فصل', value: fmt(totalQty) },
+    { label: isAll ? 'مبلغ کل' : 'مبلغ فروش', value: fmtMoney(totalRev) },
+    { label: 'درآمد (۳۰٪)', value: fmtMoney(income(totalRev)) },
   ];
   document.getElementById('seasonKpis').innerHTML = kpis
     .map(
@@ -241,30 +285,106 @@ function renderSeasonDetail(idx) {
     )
     .join('');
 
-  const top10 = products.slice(0, 10).filter((p) => p.qty > 0);
-  const ctx = document.getElementById('seasonTopChart');
-  if (seasonChart) seasonChart.destroy();
-  seasonChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: top10.map((p) => (p.name.length > 22 ? p.name.slice(0, 20) + '…' : p.name)),
-      datasets: [{ label: 'فروش', data: top10.map((p) => p.qty), backgroundColor: 'rgba(14,165,233,0.7)' }],
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-    },
-  });
+  const top10Qty = byQty.slice(0, 10);
+  const top10Rev = byRev.slice(0, 10);
 
-  document.getElementById('seasonProducts').innerHTML = `
-    <table class="w-full text-sm"><thead><tr class="text-right text-xs text-slate-500 border-b">
-      <th class="px-3 py-2">محصول</th><th class="px-3 py-2">فروش</th><th class="px-3 py-2">مبلغ</th><th class="px-3 py-2">درآمد</th>
+  const qtyCtx = document.getElementById('seasonTopQtyChart');
+  const revCtx = document.getElementById('seasonTopRevChart');
+  seasonTopQtyChart = destroyChart(seasonTopQtyChart);
+  seasonTopRevChart = destroyChart(seasonTopRevChart);
+
+  if (qtyCtx) {
+    seasonTopQtyChart = new Chart(qtyCtx, {
+      type: 'bar',
+      data: {
+        labels: top10Qty.map((p) => shortLabel(p.name)),
+        datasets: [
+          {
+            label: 'تعداد فروش',
+            data: top10Qty.map((p) => p.qty),
+            backgroundColor: 'rgba(14,165,233,0.75)',
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const p = top10Qty[ctx.dataIndex];
+                return p ? `فروش: ${fmt(p.qty)} | مبلغ: ${fmtMoney(p.rev)}` : '';
+              },
+            },
+          },
+        },
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0 } },
+        },
+      },
+    });
+  }
+
+  if (revCtx) {
+    seasonTopRevChart = new Chart(revCtx, {
+      type: 'bar',
+      data: {
+        labels: top10Rev.map((p) => shortLabel(p.name)),
+        datasets: [
+          {
+            label: 'مبلغ فروش',
+            data: top10Rev.map((p) => p.rev),
+            backgroundColor: 'rgba(16,185,129,0.75)',
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const p = top10Rev[ctx.dataIndex];
+                return p ? `مبلغ: ${fmtMoney(p.rev)} | فروش: ${fmt(p.qty)}` : '';
+              },
+            },
+          },
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              callback: (v) => fmt(v),
+            },
+          },
+        },
+      },
+    });
+  }
+
+  const tableProducts = byQty.length ? byQty : products;
+  document.getElementById('seasonProducts').innerHTML = tableProducts.length
+    ? `<table class="w-full text-sm"><thead><tr class="text-right text-xs text-slate-500 border-b">
+      <th class="px-3 py-2">#</th>
+      <th class="px-3 py-2">محصول</th>
+      <th class="px-3 py-2">فروش</th>
+      <th class="px-3 py-2">مبلغ</th>
+      <th class="px-3 py-2">درآمد ۳۰٪</th>
     </tr></thead><tbody>
-    ${products
+    ${tableProducts
       .map(
-        (p) => `<tr class="border-b border-slate-50 ${top && p.name === top.name ? 'bg-brand-50' : ''}">
+        (p, i) => `<tr class="border-b border-slate-50 ${
+          (topQty && p.name === topQty.name) || (topRev && p.name === topRev.name) ? 'bg-brand-50' : ''
+        }">
+      <td class="px-3 py-2 text-xs text-slate-400">${i + 1}</td>
       <td class="px-3 py-2">${esc(p.name)}</td>
       <td class="px-3 py-2">${fmt(p.qty)}</td>
       <td class="px-3 py-2">${fmtMoney(p.rev)}</td>
@@ -272,7 +392,8 @@ function renderSeasonDetail(idx) {
     </tr>`
       )
       .join('')}
-    </tbody></table>`;
+    </tbody></table>`
+    : '<p class="p-4 text-sm text-slate-500">برای این بازه داده‌ای نیست.</p>';
 }
 
 document.getElementById('runCompare').onclick = () => {
