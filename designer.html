@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>پنل طراح | گیکتوری</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/app.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Vazir', 'Tahoma', 'system-ui', 'sans-serif'] },
+          colors: {
+            brand: { 50:'#f0f9ff',100:'#e0f2fe',200:'#bae6fd',300:'#7dd3fc',400:'#38bdf8',500:'#0ea5e9',600:'#0284c7',700:'#0369a1',800:'#075985',900:'#0c4a6e' }
+          }
+        }
+      }
+    };
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+  </script>
+</head>
+<body class="text-slate-800 min-h-screen">
+
+  <header class="glass-header sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="text-xl">🎨</span>
+        <div>
+          <h1 class="font-bold text-lg leading-tight">پنل طراح</h1>
+          <p class="text-xs text-ios-secondary" id="designerLabel">—</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <button data-view="overview" class="nav-btn view-nav bg-black/5 px-3 py-1.5 text-sm font-semibold">نمای کلی</button>
+        <button data-view="seasons" class="nav-btn view-nav bg-transparent hover:bg-black/5 px-3 py-1.5 text-sm text-slate-600">فصل‌ها</button>
+        <button data-view="compare" class="nav-btn view-nav bg-transparent hover:bg-black/5 px-3 py-1.5 text-sm text-slate-600">مقایسه</button>
+        <button data-view="import" class="nav-btn view-nav bg-transparent hover:bg-black/5 px-3 py-1.5 text-sm text-slate-600">آپلود / درایو</button>
+        <button data-view="account" class="nav-btn view-nav bg-transparent hover:bg-black/5 px-3 py-1.5 text-sm text-slate-600">حساب</button>
+        <button id="logoutBtn" class="nav-btn bg-transparent hover:bg-black/5 px-3 py-1.5 text-sm text-slate-600">خروج</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+    <div id="loadingBar" class="hidden text-center text-sm text-slate-500 py-8">در حال بارگذاری...</div>
+    <p id="globalErr" class="hidden text-rose-600 text-sm glass-card p-3"></p>
+
+    <!-- نمای کلی -->
+    <section id="view-overview" class="space-y-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="overviewKpis"></div>
+      <div class="glass-card p-4">
+        <h2 class="font-bold text-sm mb-3">پر‌فروش‌ترین طرح در کل فعالیت</h2>
+        <div id="topAllTime" class="text-sm text-slate-600">—</div>
+      </div>
+      <div class="glass-card overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-100 font-bold text-sm">آخرین فایل‌های فصلی</div>
+        <div class="overflow-x-auto scrollbar" id="filesTable"></div>
+      </div>
+    </section>
+
+    <!-- فصل‌ها -->
+    <section id="view-seasons" class="hidden space-y-4">
+      <div class="flex flex-wrap gap-3 items-end">
+        <div>
+          <label class="text-xs text-slate-500 block mb-1">انتخاب فصل</label>
+          <select id="seasonSelect" class="border border-slate-200 rounded-xl px-3 py-2 text-sm min-w-[160px]"></select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="seasonKpis"></div>
+      <div class="glass-card p-4">
+        <h3 class="text-sm font-bold mb-2">پر‌فروش‌های این فصل</h3>
+        <div class="h-64"><canvas id="seasonTopChart"></canvas></div>
+      </div>
+      <div class="glass-card overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-100 font-bold text-sm">محصولات فصل</div>
+        <div class="overflow-x-auto scrollbar max-h-[50vh]" id="seasonProducts"></div>
+      </div>
+    </section>
+
+    <!-- مقایسه فصل‌ها -->
+    <section id="view-compare" class="hidden space-y-4">
+      <div class="glass-card p-4">
+        <p class="text-xs text-slate-500 mb-3">دو یا چند فصل را انتخاب کنید (Ctrl/Cmd)</p>
+        <select id="compareSeasons" multiple class="border border-slate-200 rounded-xl px-3 py-2 text-sm w-full h-32"></select>
+        <button id="runCompare" class="btn-ios text-sm px-4 py-2 mt-3">مقایسه فصل‌ها</button>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="glass-card p-4">
+          <h3 class="text-sm font-bold mb-2">تعداد فروش هر فصل</h3>
+          <div class="h-56"><canvas id="cmpQtyChart"></canvas></div>
+        </div>
+        <div class="glass-card p-4">
+          <h3 class="text-sm font-bold mb-2">درآمد (۳۰٪) هر فصل</h3>
+          <div class="h-56"><canvas id="cmpRevChart"></canvas></div>
+        </div>
+      </div>
+      <div class="glass-card overflow-hidden">
+        <div class="px-4 py-3 border-b border-slate-100 font-bold text-sm">جدول مقایسه</div>
+        <div class="overflow-x-auto scrollbar" id="cmpTable"></div>
+      </div>
+    </section>
+
+    <!-- آپلود و گوگل درایو -->
+    <section id="view-import" class="hidden space-y-4">
+      <div class="glass-card p-4 space-y-3">
+        <h2 class="font-bold text-sm">آپلود فایل محلی (اکسل / PDF)</h2>
+        <input type="file" id="localFile" accept=".xlsx,.xls,.csv,.pdf" multiple
+          class="block w-full text-sm text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-brand-500 file:text-white file:cursor-pointer" />
+        <p id="localStatus" class="text-xs text-slate-500"></p>
+      </div>
+      <div class="glass-card p-4 space-y-3">
+        <h2 class="font-bold text-sm">ایمپورت از گوگل درایو</h2>
+        <p class="text-xs text-slate-500">لینک پوشه عمومی درایو را بگذارید. فایل‌های xlsx/xls/csv/pdf به ترتیب خوانده و آپلود می‌شوند.</p>
+        <input type="url" id="driveUrl" placeholder="https://drive.google.com/drive/folders/..."
+          class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400"
+          value="https://drive.google.com/drive/folders/1GrcjK7JAIJATsny75ccqHJMWZewbSkd-" />
+        <button id="driveImportBtn" class="btn-ios text-sm px-4 py-2">خواندن و آپلود ترتیبی</button>
+        <div id="driveLog" class="text-xs space-y-1 max-h-48 overflow-y-auto scrollbar text-slate-600"></div>
+      </div>
+    </section>
+
+    <!-- حساب کاربری -->
+    <section id="view-account" class="hidden space-y-4 max-w-lg">
+      <div class="glass-card p-4 space-y-3">
+        <h2 class="font-bold text-sm">تغییر نام نمایشی</h2>
+        <input type="text" id="accName" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm" />
+        <button id="saveNameBtn" class="btn-ios text-sm px-4 py-2">ذخیره نام</button>
+      </div>
+      <div class="glass-card p-4 space-y-3">
+        <h2 class="font-bold text-sm">تغییر رمز عبور</h2>
+        <input type="password" id="accOldPass" placeholder="رمز فعلی" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm" />
+        <input type="password" id="accNewPass" placeholder="رمز جدید" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm" />
+        <button id="savePassBtn" class="btn-ios text-sm px-4 py-2">تغییر رمز</button>
+      </div>
+      <div class="glass-card p-4 space-y-3">
+        <h2 class="font-bold text-sm">رمزهای یک‌بارمصرف</h2>
+        <p class="text-xs text-slate-500">۴ کد بازیابی دارید. می‌توانید مجموعه جدید بسازید (کدهای قبلی باطل می‌شوند).</p>
+        <button id="regenCodesBtn" class="btn-ios text-sm px-4 py-2">ایجاد ۴ رمز یک‌بارمصرف جدید</button>
+        <ul id="newCodesList" class="hidden space-y-2 font-mono text-center text-sm"></ul>
+      </div>
+      <p id="accMsg" class="text-sm text-emerald-600 hidden"></p>
+      <p id="accErr" class="text-sm text-rose-600 hidden"></p>
+    </section>
+  </main>
+
+  <script type="module" src="js/designer/main.js"></script>
+</body>
+</html>
