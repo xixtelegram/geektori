@@ -1,0 +1,12 @@
+{
+  "username": "Bijoor",
+  "displayName": "Bijoor",
+  "passwordHash": "bfa6007294a575fff1faf356937d20cd750f956ee22ad0683f5a31f312c46e1c",
+  "recoveryHashes": [
+    "edfdf4c672efad3c078a917b1520f796f28ec01d3552aaf42c37d86666ba5113",
+    "456bdb90a26510e4950914135985b9ad4ec12d996e687c170f16d908df82fbf6",
+    "b345f7f2a7fa47c815bd20290933b7952037473a8926ffcf45738454d1f2e58a",
+    "9acf16e067427f7da6a3f023235d04fbdeff28fc00ebab32f19bd4ac76ddfbdd"
+  ],
+  "createdAt": "2026-09-27T04:36:12.733Z"
+}
