@@ -16,7 +16,10 @@
   <nav class="nav">
     <div class="nav-inner">
       <a href="../index.html" class="nav-logo">گیکتوری · ابزار تحویل</a>
-      <a href="../index.html" class="nav-badge" style="text-decoration:none">← بازگشت به صفحه اصلی</a>
+      <div class="nav-actions">
+        <a href="راهنمای-تحویل-طراحان.pdf" class="nav-guide" target="_blank" rel="noopener">راهنمای تحویل (PDF)</a>
+        <a href="../index.html" class="nav-badge" style="text-decoration:none">← بازگشت به صفحه اصلی</a>
+      </div>
     </div>
   </nav>
 
@@ -25,6 +28,7 @@
     <p class="page-sub">
       فایل‌های PNG را آپلود کن، اسم و دسته‌ها را تنظیم کن،
       و یک ZIP آمادهٔ ارسال با اکسل و طرح‌ها بگیر.
+      <a href="راهنمای-تحویل-طراحان.pdf" class="guide-inline" target="_blank" rel="noopener">مشاهده راهنمای تحویل طراحان</a>
     </p>
 
     <!-- Progress -->
@@ -261,6 +265,7 @@
   /** @type {{id:string, file:File, name:string, cats:string[], note:string, geektoryNote:string, preview:string}[]} */
   let stickers = [];
   let nextId = 1;
+  let catsClipboard = []; // shared copy buffer for categories across stickers
 
   // ═══════════════════════════════════════════════════
   // DOM refs
@@ -580,7 +585,6 @@
   let modalStickerId = null;
   let modalTempCats = [];
   let modalParent = null; // null = root; string = inside a parent
-  let catsClipboard = []; // shared copy buffer across stickers
 
   const catModal = document.getElementById("catModal");
   const catModalSearch = document.getElementById("catModalSearch");
