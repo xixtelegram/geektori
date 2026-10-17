@@ -121,9 +121,13 @@
           <button type="button" class="modal-close" id="catModalClose" aria-label="بستن">×</button>
         </div>
         <div class="modal-search-wrap">
-          <input type="text" class="modal-search" id="catModalSearch" placeholder="جستجو بین ۳۳۷ دسته…" autocomplete="off" />
+          <input type="text" class="modal-search" id="catModalSearch" placeholder="جستجو در دسته‌ها و زیرمجموعه‌ها…" autocomplete="off" />
           <span class="modal-search-icon">⌕</span>
         </div>
+      </div>
+      <div class="modal-nav" id="catModalNav" hidden>
+        <button type="button" class="modal-back" id="catModalBack">→ بازگشت</button>
+        <span class="modal-nav-label" id="catModalNavLabel"></span>
       </div>
       <div class="modal-meta">
         <span id="catModalCount"><strong>0</strong> از ۸ انتخاب شده</span>
@@ -146,56 +150,110 @@
   // ═══════════════════════════════════════════════════
   // Categories (from site list — exact spelling)
   // ═══════════════════════════════════════════════════
-  const CATEGORIES = [
-    "13reasons why","20 Century Girl","25 21","Aesthetic","AI","Alan Wake","Among US","Arcane",
-    "Ashkan Kagan","Assassin's Creed","Attack On Titan","Barbie","Batman","Battlefield","big bang theory",
-    "BlackPink","Breaking Bad","BTS","Bungo Stray Dogs","BUTT","Call Of Duty","Camping","Captain America",
-    "Castle in the sky","Christmas","Classic","Climate change","Counter Strike","Crash Bandicoot","crypto",
-    "Cyberpunk","Dance","Dark","Day6","DC Studio","Deadpool","Death Note","Demon Slayer","Deus Ex",
-    "Digital Marketing","Doom At Your Service","DOTA","Exo","Extraordinary Attorney Woo","Family by Choice",
-    "Feminism فمنیسم","Feminista","Fleabag","Fortnite","Friends","Game Of Thrones","Gamer Things",
-    "Gears of war","Gen Z","Generations","Genshin Impact","Goblin","God of War","GoLang",
-    "Grave of the Fireflies","Gray's Anatomy","GTA","Guardians of Galaxy","Hanibal","Happiness",
-    "Harry Potter","Hellbound","Hiphopologist هیپهاپولوژیست","how i met your mother","Howls moving castle",
-    "Hulk","Inside Out","Iron Man","It","John Wick","Joker","Jujutsu Kaisen","Ketnipz",
-    "Kiki's Delivery Service","KPop Demon Hunters","Labubu","Legacy of Kain","Leon The Professional",
-    "Loki","Lord of the rings","Lucifer","Makeup","Mario","meme","Metal Gear Solid","Millennials",
-    "Minecraft","minions","Money Heist (La Casa de Papel)","Monster Inc","Moon Knight","Moon Lovers",
-    "Mortal Kombat","Mouse","Mr Plankton","Mr. Robot","My Neighbor Totoro","Naruto","Network","Nirvana",
-    "One Piece","Oppenheimer","Our Beloved Summer","Peach and Goma","Peaky Blinders","Pentol","Pink Floyd",
-    "Pokémon","Ponyo","Pop","Pride","Proposal Business","Psychonauts","Pubg","Queen of Tears","Quote",
-    "Rainbow Six Siege","Red Dead Redemption","Resident Evil","Rick and Morty","Sadness","Sea of thieves",
-    "Self Care","Sherlock","Sign","Sims","Snow Drop","Something in the Rain","Spiderman","Spirited Away",
-    "Spoiled Rabbit","Spy x Family","Squid Game","star wars","stranger things","Stray Kids","Surf's Up",
-    "Suzume","Sweet Home","Taxi Driver","Taylor Swift","Ted Lasso","Teenage Mutant Ninja Turtles","Text",
-    "The Handmaid's Tale","The king eternal monarch","The Last of us","The Lord of the Rings: The Rings of Power",
-    "The Marvelous Mrs. Maisel","The Office","The Witcher","This Is Us","Thor","Tokyo Ghoul","Tomb Raider",
-    "Toy Story","Travel","Twinkling Watermelon","V for Vendetta","Vampire","Vegeterian","Venom","Vikings",
-    "Walking Dead","Wall-e","Wanda Vision","We Bare Bears","Wednesday","آ.اس. رم A.S. Roma","آبی","آث‌میلان",
-    "آشپزی و شیرینی پزی","آفرود - offroad","اباصالح المهدی (عج)","ادبیات","استیکر 18 ساله ها","استیکر 25 ساله ها",
-    "استیکر 6 ضلعی","استیکر تراپی","استیکر های Cheeky Chops","استیکر های Giftori","استیکر های آسمونی",
-    "استیکر های ابدی (Eternal)","استیکر های بولت ژورنال","استیکر های تمبری","استیکر های فانتزی","استیکر کیبورد",
-    "استیکرشیت","اسکی روی یخ","اسکیت","اسکین لپ تاپ","اقیانوس","امام حسین (ع)","امیرالمؤمنین (ع)","انگیزشی",
-    "انیمه Anime","اژدها سواران","ایران","باب اسفنجی","بارسلونا","بازی","بایرن مونیخ","بتمنی","بدنسازی",
-    "برنامه نویس ها","بسکتبال NBA","بشه‌ی منه","بلو بانک","بنفش","به صرفه بخر","بهار","بورس و ترید","تابستان",
-    "تایپوگرافی","تنیس","تن‌تن Tintin","تو بانک","حضرت زهرا (س)","حقوق","خوشمزه","دارو سازی","دندان پزشکی",
-    "دوست دختر بتمن","دوچرخه و موتورسواری","رئال مادرید 🏆👑🏳️","رابرداک","رترور","رشته های دانشگاهی",
-    "رهبر شهید","روانشناسی و روانپزشکی","رپ و HipHop","ریاضی","زرد","زمستان","سازهای موسیقی","سبز","سرعت",
-    "سفید","سوار کاری","سیاه سفید","شعر","شغل ها","شنا","شهر ها","طراحان","طلسم شدگان","طوسی",
-    "عاشقی - in Love","عشق ابدی","عشق گربه - Cat Person","علمی","عمومی","عکاسی","فرمول یک Formula 1",
-    "فستوری","فستوری بازی","فستوری طراح ها","فستوری عمومی","فستوری فیلم و سریال","فستوری مذهبی",
-    "فستوری موسیقی","فستوری کامپیوتر","فستوری کیوت‌طوری","فلسفی","فوتبال","فکت","فیلم-سریال-انیمیشن",
-    "قرمز صورتی","قهوه - Coffee","قیاسی","لوگو اتوموبیل","لوگو دانشگاه جهان","لوگو ها","لوگوی تیم فوتبال",
-    "لوگوی دانشگاه ها","مادر","مارول","مارکوس","ماشین","ماندالا","ماه های تولد","ماهی ازون برون",
-    "متن فارسی","مذهبی","مشاوره","معماری","مهمونی","مهندسی برق","مهندسی شیمی","مهندسی صنایع","مهندسی عمران",
-    "مهندسی معدن","مهندسی مواد","مهندسی مکانیک","مهندسی نساجی","مهندسی نفت","مهندسی هوافضا","مهندسی پزشکی",
-    "مهندسی پلیمر","موسیقی","مومنتوری","میکرو استیکر","نارنجی","نجوم","نقاشی","نوستالژی","هالووین",
-    "هفت سین","هنر","واليبال","ورزشی","وقتی زندگی بهت نارنگی میدهد","ِDoctor Strange","پایتخت","پاییز",
-    "پت‌طوری","پزشکی","پیکسل تراپی","ژنتیک","کاراته","کارت استیکر","کامپیوتر","کتاب","کرم قهوه ای",
-    "کنترل خشم","کومان","کیدراما","کیوت‌طوری","گرافیک","گیک های کامپیوتر","یلدا","یوونتوس"
-  ];
+  // Hierarchical categories (exact spelling for Excel)
+  // Empty array [] = leaf category (select the parent name itself)
+  const CATEGORY_TREE = {
+    "فیلم-سریال-انیمیشن": [
+      "13reasons why","20 Century Girl","25 21","Arcane","Attack On Titan","Barbie","Batman",
+      "big bang theory","Breaking Bad","Bungo Stray Dogs","Captain America","Castle in the sky",
+      "Classic","Dark","DC Studio","Deadpool","Death Note","Demon Slayer","Doom At Your Service",
+      "Extraordinary Attorney Woo","Family by Choice","Fleabag","Friends","Game Of Thrones","Goblin",
+      "Grave of the Fireflies","Gray's Anatomy","Guardians of Galaxy","Hanibal","Happiness",
+      "Harry Potter","Hellbound","how i met your mother","Howls moving castle","Hulk","Inside Out",
+      "Iron Man","It","John Wick","Joker","Jujutsu Kaisen","Kiki's Delivery Service","KPop Demon Hunters",
+      "Leon The Professional","Loki","Lord of the rings","Lucifer","minions","Money Heist (La Casa de Papel)",
+      "Monster Inc","Moon Knight","Moon Lovers","Mouse","Mr Plankton","Mr. Robot","My Neighbor Totoro",
+      "Naruto","One Piece","Oppenheimer","Our Beloved Summer","Peaky Blinders","Pokémon","Ponyo",
+      "Proposal Business","Queen of Tears","Rick and Morty","Sherlock","Snow Drop","Something in the Rain",
+      "Spiderman","Spirited Away","Spy x Family","Squid Game","star wars","stranger things","Surf's Up",
+      "Suzume","Sweet Home","Taxi Driver","Ted Lasso","Teenage Mutant Ninja Turtles","The Handmaid's Tale",
+      "The king eternal monarch","The Lord of the Rings: The Rings of Power","The Marvelous Mrs. Maisel",
+      "The Office","The Witcher","This Is Us","Thor","Tokyo Ghoul","Toy Story","Twinkling Watermelon",
+      "V for Vendetta","Vampire","Venom","Vikings","Walking Dead","Wall-e","Wanda Vision","We Bare Bears",
+      "Wednesday","انیمه Anime","اژدها سواران","باب اسفنجی","تن‌تن Tintin","طلسم شدگان","عشق ابدی",
+      "قیاسی","مارول","مهمونی","وقتی زندگی بهت نارنگی میدهد","ِDoctor Strange","پایتخت","کومان","کیدراما"
+    ],
+    "عمومی": [
+      "Camping","Christmas","Climate change","crypto","Dance","Digital Marketing","Feminism فمنیسم",
+      "Feminista","Gen Z","Generations","Ketnipz","Labubu","Makeup","meme","Millennials","Pride",
+      "Sadness","Self Care","Sign","Text","Travel","Vegeterian","آشپزی و شیرینی پزی","آفرود - offroad",
+      "اقیانوس","انگیزشی","ایران","بتمنی","بورس و ترید","خوشمزه","دوست دختر بتمن","رابرداک","رترور",
+      "سرعت","شهر ها","عاشقی - in Love","علمی","فلسفی","فکت","قهوه - Coffee","لوگو اتوموبیل",
+      "لوگو دانشگاه جهان","لوگوی دانشگاه ها","مادر","مارکوس","ماشین","ماندالا","ماه های تولد",
+      "ماهی ازون برون","متن فارسی","نجوم","نقاشی","نوستالژی","هالووین","هفت سین","هنر","کتاب",
+      "کنترل خشم","یلدا","پاییز","پت‌طوری","کرم قهوه ای"
+    ],
+    "بازی": [
+      "Alan Wake","Among US","Assassin's Creed","Batman","Battlefield","Call Of Duty","Counter Strike",
+      "Crash Bandicoot","Cyberpunk","Deus Ex","DOTA","Fortnite","Gamer Things","Gears of war",
+      "Genshin Impact","God of War","GTA","Legacy of Kain","Mario","Metal Gear Solid","Minecraft",
+      "Mortal Kombat","Psychonauts","Pubg","Rainbow Six Siege","Red Dead Redemption","Resident Evil",
+      "Sea of thieves","Sims","Teenage Mutant Ninja Turtles","The Last of us","The Witcher","Tomb Raider"
+    ],
+    "رشته های دانشگاهی": [
+      "ادبیات","تایپوگرافی","حقوق","دارو سازی","دندان پزشکی","روانشناسی و روانپزشکی","ریاضی","شعر",
+      "عکاسی","مشاوره","معماری","مهندسی برق","مهندسی شیمی","مهندسی صنایع","مهندسی عمران","مهندسی معدن",
+      "مهندسی مواد","مهندسی مکانیک","مهندسی نساجی","مهندسی نفت","مهندسی هوافضا","مهندسی پزشکی",
+      "مهندسی پلیمر","پزشکی","ژنتیک","گرافیک"
+    ],
+    "کیوت‌طوری": [
+      "Aesthetic","BUTT","Peach and Goma","Pentol","Spoiled Rabbit","آبی","استیکر 18 ساله ها",
+      "استیکر 25 ساله ها","بشه‌ی منه","بنفش","بهار","تابستان","زرد","زمستان","سبز","سفید","سیاه سفید",
+      "طوسی","عشق گربه - Cat Person","قرمز صورتی","نارنجی"
+    ],
+    "ورزشی": [
+      "آ.اس. رم A.S. Roma","آث‌میلان","اسکی روی یخ","اسکیت","بارسلونا","بایرن مونیخ","بدنسازی",
+      "بسکتبال NBA","تنیس","دوچرخه و موتورسواری","رئال مادرید 🏆👑🏳️","سوار کاری","شنا",
+      "فرمول یک Formula 1","فوتبال","لوگوی تیم فوتبال","واليبال","کاراته","یوونتوس"
+    ],
+    "موسیقی": [
+      "Ashkan Kagan","BlackPink","BTS","Day6","Exo","هیپهاپولوژیست Hiphopologist","Nirvana",
+      "Pink Floyd","Pop","Stray Kids","Taylor Swift","رپ و HipHop","سازهای موسیقی"
+    ],
+    "فستوری": [
+      "فستوری بازی","فستوری طراح ها","فستوری عمومی","فستوری فیلم و سریال","فستوری مذهبی",
+      "فستوری موسیقی","فستوری کامپیوتر","فستوری کیوت‌طوری"
+    ],
+    "استیکر های فانتزی": [
+      "استیکر های Cheeky Chops","استیکر های Giftori","استیکر های آسمونی","استیکر های ابدی (Eternal)",
+      "استیکر های بولت ژورنال","استیکر های تمبری","به صرفه بخر","مومنتوری"
+    ],
+    "کامپیوتر": [
+      "AI","GoLang","Network","برنامه نویس ها","طراحان","لوگو ها","گیک های کامپیوتر"
+    ],
+    "مذهبی": [
+      "اباصالح المهدی (عج)","امام حسین (ع)","امیرالمؤمنین (ع)","حضرت زهرا (س)","رهبر شهید"
+    ],
+    "کارت استیکر": [
+      "بلو بانک","تو بانک"
+    ],
+    "استیکر تراپی": [
+      "پیکسل تراپی"
+    ],
+    "میکرو استیکر": [],
+    "اسکین لپ تاپ": [],
+    "استیکر 6 ضلعی": [],
+    "استیکرشیت": [],
+    "استیکر کیبورد": [],
+    "Quote": [],
+    "شغل ها": []
+  };
 
+  // Ordered list of main category keys
+  const CATEGORY_PARENTS = Object.keys(CATEGORY_TREE);
+
+  // All selectable values (leaves + leaf-only parents)
+  const CATEGORIES = (() => {
+    const out = [];
+    for (const parent of CATEGORY_PARENTS) {
+      const kids = CATEGORY_TREE[parent];
+      if (!kids || kids.length === 0) out.push(parent);
+      else out.push(...kids);
+    }
+    return out;
+  })();
   const CATEGORY_SET = new Set(CATEGORIES);
+
 
   // ═══════════════════════════════════════════════════
   // State
@@ -407,10 +465,20 @@
               </div>
               <span class="cat-trigger-arrow">‹</span>
             </button>
-            <div class="cat-hint" style="font-size:12px;color:var(--color-slate);margin-top:6px;">
-              ${s.cats.length === 0
-                ? "اگر دسته مناسب پیدا نکردی خالی بگذار و تو یادداشت بنویس."
-                : s.cats.length + " از ۸ دسته انتخاب شده"}
+            <div class="cat-actions">
+              <span class="cat-hint">
+                ${s.cats.length === 0
+                  ? "اگر دسته مناسب پیدا نکردی خالی بگذار و تو یادداشت بنویس."
+                  : s.cats.length + " از ۸ دسته انتخاب شده"}
+              </span>
+              <div class="cat-copy-btns">
+                ${s.cats.length
+                  ? `<button type="button" class="btn-cat-copy" data-copycats="${s.id}">کپی دسته‌ها</button>`
+                  : ""}
+                ${catsClipboard.length
+                  ? `<button type="button" class="btn-cat-paste" data-pastecats="${s.id}">پیست دسته‌ها</button>`
+                  : ""}
+              </div>
             </div>
           </div>
           <div class="field-row">
@@ -467,6 +535,33 @@
     stickerList.querySelectorAll("[data-opencats]").forEach(btn => {
       btn.addEventListener("click", () => openCatModal(btn.dataset.opencats));
     });
+    stickerList.querySelectorAll("[data-copycats]").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        const s = stickers.find(x => x.id === btn.dataset.copycats);
+        if (!s || !s.cats.length) return;
+        catsClipboard = s.cats.slice();
+        toast(s.cats.length + " دسته کپی شد — روی استیکرهای دیگر پیست کن");
+        renderStickers();
+      });
+    });
+    stickerList.querySelectorAll("[data-pastecats]").forEach(btn => {
+      btn.addEventListener("click", e => {
+        e.stopPropagation();
+        if (!catsClipboard.length) return;
+        const s = stickers.find(x => x.id === btn.dataset.pastecats);
+        if (!s) return;
+        const merged = [...s.cats];
+        for (const c of catsClipboard) {
+          if (merged.length >= 8) break;
+          if (!merged.includes(c)) merged.push(c);
+        }
+        s.cats = merged;
+        toast(merged.length + " دسته اعمال شد");
+        renderStickers();
+        updateProgress();
+      });
+    });
   }
 
   function renderCatPreviewHTML(s) {
@@ -481,9 +576,11 @@
     return html;
   }
 
-  // ── Category Modal ──
+  // ── Category Modal (hierarchical) ──
   let modalStickerId = null;
   let modalTempCats = [];
+  let modalParent = null; // null = root; string = inside a parent
+  let catsClipboard = []; // shared copy buffer across stickers
 
   const catModal = document.getElementById("catModal");
   const catModalSearch = document.getElementById("catModalSearch");
@@ -492,12 +589,16 @@
   const catModalCount = document.getElementById("catModalCount");
   const catModalFiltered = document.getElementById("catModalFiltered");
   const catModalPanel = catModal.querySelector(".modal");
+  const catModalNav = document.getElementById("catModalNav");
+  const catModalNavLabel = document.getElementById("catModalNavLabel");
+  const catModalBack = document.getElementById("catModalBack");
 
   function openCatModal(stickerId) {
     const s = stickers.find(x => x.id === stickerId);
     if (!s) return;
     modalStickerId = stickerId;
     modalTempCats = s.cats.slice();
+    modalParent = null;
     catModalSearch.value = "";
     renderModalUI();
     catModal.classList.add("open");
@@ -513,6 +614,7 @@
     catModal.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "";
     modalStickerId = null;
+    modalParent = null;
 
     if (apply && id) {
       const s = stickers.find(x => x.id === id);
@@ -539,7 +641,6 @@
   }
 
   function renderModalUI() {
-    // Selected chips
     if (modalTempCats.length === 0) {
       catModalSelected.innerHTML = "";
     } else {
@@ -554,30 +655,57 @@
       : `<strong>${n}</strong> از ۸ انتخاب شده`;
 
     const q = catModalSearch.value.trim().toLowerCase();
-    const filtered = q
-      ? CATEGORIES.filter(c => c.toLowerCase().includes(q))
-      : CATEGORIES;
+    const atLimit = modalTempCats.length >= 8;
 
-    catModalFiltered.textContent = q
-      ? `${filtered.length} نتیجه`
-      : `${CATEGORIES.length} دسته`;
-
-    if (filtered.length === 0) {
-      catModalGrid.innerHTML = '<div class="modal-empty">دسته‌ای با این نام پیدا نشد</div>';
+    // Search: flat across all selectable leaves
+    if (q) {
+      catModalNav.hidden = true;
+      const filtered = CATEGORIES.filter(c => c.toLowerCase().includes(q));
+      catModalFiltered.textContent = filtered.length + " نتیجه";
+      if (filtered.length === 0) {
+        catModalGrid.innerHTML = '<div class="modal-empty">دسته‌ای با این نام پیدا نشد</div>';
+        return;
+      }
+      catModalGrid.innerHTML = filtered.map(c => {
+        const sel = modalTempCats.includes(c);
+        const dis = !sel && atLimit;
+        return `<button type="button" class="modal-tag${sel ? " selected" : ""}${dis ? " disabled" : ""}" data-leaf="${escapeAttr(c)}">${escapeHtml(c)}</button>`;
+      }).join("");
       return;
     }
 
-    const atLimit = modalTempCats.length >= 8;
-    // Use index into CATEGORIES to avoid special-char dataset issues
-    catModalGrid.innerHTML = filtered.map(c => {
-      const sel = modalTempCats.includes(c);
-      const dis = !sel && atLimit;
-      const idx = CATEGORIES.indexOf(c);
-      return `<button type="button" class="modal-tag${sel ? " selected" : ""}${dis ? " disabled" : ""}" data-cat-idx="${idx}">${escapeHtml(c)}</button>`;
-    }).join("");
+    if (modalParent === null) {
+      catModalNav.hidden = true;
+      catModalFiltered.textContent = CATEGORY_PARENTS.length + " دسته اصلی";
+      catModalGrid.innerHTML = CATEGORY_PARENTS.map(parent => {
+        const kids = CATEGORY_TREE[parent] || [];
+        const isLeaf = kids.length === 0;
+        if (isLeaf) {
+          const sel = modalTempCats.includes(parent);
+          const dis = !sel && atLimit;
+          return `<button type="button" class="modal-tag modal-tag-leaf${sel ? " selected" : ""}${dis ? " disabled" : ""}" data-leaf="${escapeAttr(parent)}">${escapeHtml(parent)}</button>`;
+        }
+        const selCount = kids.filter(k => modalTempCats.includes(k)).length;
+        const badge = selCount ? `<span class="modal-folder-badge">${selCount}</span>` : "";
+        return `<button type="button" class="modal-tag modal-tag-folder" data-folder="${escapeAttr(parent)}"><span class="modal-folder-icon">📁</span> ${escapeHtml(parent)}${badge}<span class="modal-folder-arrow">‹</span></button>`;
+      }).join("");
+    } else {
+      catModalNav.hidden = false;
+      catModalNavLabel.textContent = modalParent;
+      const kids = CATEGORY_TREE[modalParent] || [];
+      catModalFiltered.textContent = kids.length + " زیرمجموعه";
+      if (kids.length === 0) {
+        catModalGrid.innerHTML = '<div class="modal-empty">زیرمجموعه‌ای نیست</div>';
+        return;
+      }
+      catModalGrid.innerHTML = kids.map(c => {
+        const sel = modalTempCats.includes(c);
+        const dis = !sel && atLimit;
+        return `<button type="button" class="modal-tag${sel ? " selected" : ""}${dis ? " disabled" : ""}" data-leaf="${escapeAttr(c)}">${escapeHtml(c)}</button>`;
+      }).join("");
+    }
   }
 
-  // Event delegation — reliable for dynamically rendered tags/chips
   catModalSelected.addEventListener("click", e => {
     const btn = e.target.closest("[data-rm-idx]");
     if (!btn) return;
@@ -591,14 +719,29 @@
   });
 
   catModalGrid.addEventListener("click", e => {
-    const tag = e.target.closest("[data-cat-idx]");
-    if (!tag || tag.classList.contains("disabled")) return;
+    const folderBtn = e.target.closest("[data-folder]");
+    if (folderBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      modalParent = folderBtn.getAttribute("data-folder");
+      catModalSearch.value = "";
+      renderModalUI();
+      return;
+    }
+    const leafBtn = e.target.closest("[data-leaf]");
+    if (!leafBtn || leafBtn.classList.contains("disabled")) return;
     e.preventDefault();
     e.stopPropagation();
-    const idx = parseInt(tag.getAttribute("data-cat-idx"), 10);
-    if (!isNaN(idx) && CATEGORIES[idx] != null) {
-      toggleModalCat(CATEGORIES[idx]);
-    }
+    const cat = leafBtn.getAttribute("data-leaf");
+    if (cat) toggleModalCat(cat);
+  });
+
+  catModalBack.addEventListener("click", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    modalParent = null;
+    catModalSearch.value = "";
+    renderModalUI();
   });
 
   catModalSearch.addEventListener("input", () => renderModalUI());
@@ -622,7 +765,6 @@
     renderModalUI();
   });
 
-  // Backdrop click closes without apply; clicks inside panel do nothing extra
   catModal.addEventListener("click", e => {
     if (e.target === catModal) closeCatModal(false);
   });
@@ -631,7 +773,14 @@
   }
 
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape" && catModal.classList.contains("open")) closeCatModal(false);
+    if (e.key === "Escape" && catModal.classList.contains("open")) {
+      if (modalParent && !catModalSearch.value.trim()) {
+        modalParent = null;
+        renderModalUI();
+      } else {
+        closeCatModal(false);
+      }
+    }
   });
 
   // ═══════════════════════════════════════════════════
