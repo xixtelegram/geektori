@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>راهنمای تحویل استیکر · گیکتوری</title>
+  <meta name="description" content="راهنمای تحویل استیکر به گیکتوری — قوانین PNG، نام‌گذاری، اکسل و چک‌لیست ارسال" />
+  <style>
+    :root {
+      --color-gallery-white: #ffffff;
+      --color-studio-mist: #f5f5f7;
+      --color-paper-frost: #fafafc;
+      --color-hairline-silver: #d6d6d6;
+      --color-control-gray: #e6e6e8;
+      --color-ink: #1d1d1f;
+      --color-slate: #707070;
+      --color-steel: #86868b;
+      --color-apple-blue: #0066cc;
+      --color-pricing-blue: #0071e3;
+      --color-success: #1a7a3a;
+      --color-error: #b33a32;
+      --soft-blue: #eef5ff;
+      --soft-blue-border: #d0e4ff;
+      --soft-green: #f0faf3;
+      --soft-green-border: #b8e6c8;
+      --soft-red: #fff5f4;
+      --soft-red-border: #f5c4c0;
+      --soft-orange: #fff6f0;
+      --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --radius-card: 20px;
+      --radius-pill: 9999px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-text);
+      background: var(--color-studio-mist);
+      color: var(--color-ink);
+      line-height: 1.55;
+      letter-spacing: -0.022em;
+      direction: rtl;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      height: 52px;
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: saturate(180%) blur(20px);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid var(--color-control-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-inner {
+      width: 100%;
+      max-width: 820px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 17px;
+      color: var(--color-ink);
+      text-decoration: none;
+    }
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .nav-link {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-apple-blue);
+      text-decoration: none;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--soft-blue-border);
+      background: var(--soft-blue);
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .nav-link:hover {
+      background: #e5f0ff;
+      border-color: var(--color-pricing-blue);
+    }
+    .nav-badge {
+      font-size: 12px;
+      color: var(--color-slate);
+      background: var(--color-studio-mist);
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+    }
+
+    .main {
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 40px 20px 80px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(26px, 5vw, 36px);
+      font-weight: 600;
+      color: var(--color-pricing-blue);
+      letter-spacing: -0.03em;
+      margin-bottom: 10px;
+    }
+    .hero p {
+      font-size: 16px;
+      color: var(--color-slate);
+      max-width: 520px;
+      margin: 0 auto 24px;
+      line-height: 1.55;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .btn-key {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 28px;
+      border: none;
+      border-radius: var(--radius-pill);
+      background: var(--color-pricing-blue);
+      color: #fff;
+      font-family: var(--font-text);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(0, 113, 227, 0.28);
+    }
+    .btn-key:hover {
+      background: #0077ed;
+      transform: translateY(-1px);
+    }
+    .btn-key:active { transform: translateY(0); }
+    .btn-key.open {
+      background: var(--color-ink);
+      box-shadow: none;
+    }
+    .btn-key .key-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.18);
+      font-size: 15px;
+    }
+    .btn-key .chevron {
+      font-size: 12px;
+      opacity: 0.85;
+      transition: transform 0.25s ease;
+    }
+    .btn-key.open .chevron { transform: rotate(180deg); }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 20px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--color-hairline-silver);
+      background: var(--color-gallery-white);
+      color: var(--color-apple-blue);
+      font-family: var(--font-text);
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-secondary:hover {
+      background: var(--soft-blue);
+      border-color: var(--soft-blue-border);
+    }
+
+    /* Guide panel */
+    .guide-panel {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.4s ease;
+      margin-top: 8px;
+    }
+    .guide-panel.open {
+      grid-template-rows: 1fr;
+    }
+    .guide-panel-inner {
+      overflow: hidden;
+      min-height: 0;
+    }
+    .guide-content {
+      opacity: 0;
+      transform: translateY(-8px);
+      transition: opacity 0.35s ease 0.05s, transform 0.35s ease 0.05s;
+      padding-top: 8px;
+    }
+    .guide-panel.open .guide-content {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .section {
+      background: var(--color-gallery-white);
+      border-radius: var(--radius-card);
+      padding: 22px 24px;
+      margin-bottom: 14px;
+      border: 1px solid var(--color-control-gray);
+    }
+    .section h2 {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      padding-right: 12px;
+      border-right: 3.5px solid var(--color-pricing-blue);
+      line-height: 1.3;
+    }
+
+    .card-soft {
+      background: var(--color-studio-mist);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .card-soft:last-child { margin-bottom: 0; }
+    .card-soft p { margin: 0 0 8px; font-size: 14px; }
+    .card-soft p:last-child { margin-bottom: 0; }
+    .card-soft .title-blue {
+      color: var(--color-pricing-blue);
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .card-blue {
+      background: var(--soft-blue);
+      border: 1px solid var(--soft-blue-border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 14px;
+    }
+    .card-blue strong { color: var(--color-pricing-blue); }
+
+    ul.bullets {
+      list-style: none;
+      margin: 8px 0 0;
+      padding: 0;
+    }
+    ul.bullets li {
+      position: relative;
+      padding-right: 16px;
+      margin-bottom: 7px;
+      font-size: 14px;
+    }
+    ul.bullets li::before {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 9px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-pricing-blue);
+    }
+
+    .muted { color: var(--color-slate); font-size: 13px; }
+
+    table.rules {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid var(--color-hairline-silver);
+      border-radius: 14px;
+      overflow: hidden;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    table.rules th {
+      background: var(--soft-blue);
+      font-weight: 600;
+      padding: 11px 14px;
+      text-align: right;
+    }
+    table.rules td {
+      padding: 11px 14px;
+      text-align: right;
+      border-top: 1px solid var(--color-hairline-silver);
+      vertical-align: top;
+    }
+    table.rules tr:nth-child(even) td { background: var(--color-studio-mist); }
+    table.rules tr.warn td { background: var(--soft-orange); }
+    table.rules td.label {
+      width: 32%;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .examples {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 12px 0;
+    }
+    @media (max-width: 560px) {
+      .examples { grid-template-columns: 1fr; }
+    }
+    .ex {
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+    .ex.good {
+      background: var(--soft-green);
+      border: 1px solid var(--soft-green-border);
+    }
+    .ex.bad {
+      background: var(--soft-red);
+      border: 1px solid var(--soft-red-border);
+    }
+    .ex h3 {
+      margin: 0 0 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .ex.good h3 { color: var(--color-success); }
+    .ex.bad h3 { color: var(--color-error); }
+    .ex div { margin-bottom: 4px; }
+
+    .check-list { list-style: none; padding: 0; margin: 0; }
+    .check-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--color-studio-mist);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .check-list li:last-child { margin-bottom: 0; }
+    .check-box {
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid var(--color-steel);
+      border-radius: 5px;
+      flex-shrink: 0;
+      background: var(--color-gallery-white);
+    }
+
+    .closing {
+      background: var(--color-studio-mist);
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-top: 8px;
+      text-align: center;
+    }
+    .closing strong {
+      display: block;
+      color: var(--color-pricing-blue);
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .closing span {
+      color: var(--color-slate);
+      font-size: 14px;
+    }
+
+    .hint-closed {
+      text-align: center;
+      color: var(--color-slate);
+      font-size: 13px;
+      margin-top: 18px;
+      transition: opacity 0.25s;
+    }
+    .hint-closed.hidden { display: none; }
+
+    code, .mono {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.92em;
+      direction: ltr;
+      unicode-bidi: isolate;
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">گیکتوری · راهنما</a>
+      <div class="nav-actions">
+        <a href="index.html" class="nav-link">ابزار تحویل</a>
+        <a href="راهنمای-تحویل-طراحان.pdf" class="nav-badge" target="_blank" rel="noopener">دانلود PDF</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <div class="hero">
+      <h1>راهنمای تحویل استیکر</h1>
+      <p>
+        قبل از ارسال یک‌بار تا آخر بخوان.
+        با رعایتش، استیکرهایت سریع‌تر و بدون خطا روی سایت می‌روند.
+      </p>
+      <div class="hero-actions">
+        <button type="button" class="btn-key" id="toggleGuide" aria-expanded="false" aria-controls="guidePanel">
+          <span class="key-icon">🔑</span>
+          <span class="btn-label">نمایش راهنما</span>
+          <span class="chevron">▼</span>
+        </button>
+        <a class="btn-secondary" href="راهنمای-تحویل-طراحان.pdf" target="_blank" rel="noopener">دانلود نسخه PDF</a>
+      </div>
+      <p class="hint-closed" id="hintClosed">برای دیدن کامل راهنما روی دکمه کلیک کن.</p>
+    </div>
+
+    <div class="guide-panel" id="guidePanel">
+      <div class="guide-panel-inner">
+        <div class="guide-content">
+
+          <!-- 1 -->
+          <section class="section">
+            <h2>۱) چی باید تحویل بدی؟</h2>
+            <div class="card-soft">
+              <p>یک پوشه با اسم خودت (همان اسمی که تو سایت داری) بساز و داخلش بگذار:</p>
+              <ul class="bullets">
+                <li>فایل <span class="mono">PNG</span> هر استیکر (هر استیکر یک فایل جدا)</li>
+                <li>یک فایل اکسل از روی قالب رسمی: <span class="mono">قالب-اکسل-طراح.xlsx</span></li>
+              </ul>
+              <p class="muted" style="margin-top:10px">
+                اسم پوشه و اسم اکسل هر چی باشد اشکال ندارد (ولی بهتر است اسم خودت باشد).
+                فقط یک اکسل بفرست و در همان پوشهٔ فایل‌های PNG باشد. بعد پوشه را زیپ کن و بفرست.
+              </p>
+            </div>
+          </section>
+
+          <!-- 2 -->
+          <section class="section">
+            <h2>۲) فایل PNG چطور باشد؟</h2>
+            <table class="rules">
+              <thead>
+                <tr><th style="width:32%">چی</th><th>چطور</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="label">پس‌زمینه</td>
+                  <td>شفاف (<span class="mono">transparent</span>)</td>
+                </tr>
+                <tr class="warn">
+                  <td class="label">حاشیهٔ سفید دور طرح</td>
+                  <td>نگذار. خط برش و نوار سفید دور استیکر را خودمان می‌سازیم. فقط خود طرح.</td>
+                </tr>
+                <tr>
+                  <td class="label">سایه و افکت دور طرح</td>
+                  <td>نگذار (سایهٔ بیرونی، درخشش و …). سایهٔ داخل طرح اشکال ندارد.</td>
+                </tr>
+                <tr>
+                  <td class="label">یک فایل = یک استیکر</td>
+                  <td>چند استیکر کنار هم در یک فایل نباشد. (بجز وقتی خود طرح چندتکه است، مثل یک شخصیت با بادکنک)</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+
+          <!-- 3 -->
+          <section class="section">
+            <h2>۳) اسم فایل چی باشد؟</h2>
+            <ul class="bullets">
+              <li>اسم فایل = اسم استیکر. همین اسم روی سایت می‌آید، پس واضح و قشنگ بنویس.</li>
+              <li>اسم فارسی ساده؛ اگر روی خود استیکر نوشتهٔ انگلیسی هست، همان را هم بعدش بنویس.</li>
+              <li>کلمهٔ «استیکر» را ننویس؛ خودمان اول اسم می‌گذاریم.</li>
+            </ul>
+            <div class="examples">
+              <div class="ex good">
+                <h3>درست ✓</h3>
+                <div>گربه‌ی خوابالو</div>
+                <div>بغل رایگان <span class="mono">Free Hugs</span></div>
+                <div>تانجیرو <span class="mono">Tanjiro</span></div>
+              </div>
+              <div class="ex bad">
+                <h3>غلط ✗</h3>
+                <div class="mono">IMG_2785</div>
+                <div>طرح۱ ، جدید ، <span class="mono">copy</span></div>
+                <div>استیکر گربه</div>
+              </div>
+            </div>
+            <div class="card-blue">
+              <p><strong>مهم</strong></p>
+              <p style="margin:6px 0 0">
+                دو استیکر نباید اسم یکسان داشته باشند. اگر از یک طرح چند رنگ داری، رنگ را در اسم بنویس
+                (مثلاً «لیوان کاکائو زرد» و «لیوان کاکائو صورتی»).
+              </p>
+            </div>
+          </section>
+
+          <!-- 4 -->
+          <section class="section">
+            <h2>۴) اکسل را چطور پر کنم؟</h2>
+            <p class="muted" style="margin-bottom:12px">برای هر استیکر یک ردیف. ستون‌ها:</p>
+
+            <div class="card-soft">
+              <div class="title-blue">الف: نام استیکر</div>
+              <p>دقیقاً مثل اسم فایل PNG، بدون پسوند. اسم فایل و اسم داخل اکسل باید یکی باشند؛ ما از روی همین اسم عکس را به ردیف وصل می‌کنیم.</p>
+            </div>
+            <div class="card-soft">
+              <div class="title-blue">ب: دسته‌ها</div>
+              <p>
+                همهٔ دسته‌های این استیکر را در همین یک خانه بنویس و با «،» جدا کن؛ مثلاً:
+                <span class="mono">Demon Slayer</span>، کیوت‌طوری.
+                تعداد دسته‌ها تا ۸ تا. اسم هر دسته باید دقیقاً مثل لیست سایت باشد.
+                اگر اشتباه بنویسی اکسل خطا می‌دهد و ستون آخر قرمز می‌شود؛ اگر درست باشد سبز می‌شود.
+              </p>
+            </div>
+            <div class="card-soft">
+              <div class="title-blue">ج: یادداشت (اختیاری)</div>
+              <p>
+                یک جمله: این استیکر چیست؟ شخصیت یا موضوعش؟
+                (برای متن سئو لازم است. مثلاً «تانجیرو از انیمه‌ی دیمن اسلیر با گوشواره‌ی هانافودا»)
+              </p>
+            </div>
+            <div class="card-soft">
+              <div class="title-blue">د: بررسی دسته‌ها</div>
+              <p>خودکار پر می‌شود، دست نزن.</p>
+            </div>
+
+            <p style="font-weight:600; margin:16px 0 8px; font-size:14px">دسته‌ها چطور انتخاب شوند:</p>
+            <ul class="bullets">
+              <li>اگر مربوط به انیمه، فیلم، سریال یا بازی خاصی است، اسم همان دسته (مثلاً <span class="mono">Demon Slayer</span> یا <span class="mono">Minecraft</span>).</li>
+              <li>اگر رویش متن فارسی نوشته شده: «متن فارسی». اگر متن انگلیسی: «<span class="mono">Text</span>».</li>
+              <li>برای حس و حال: «کیوت‌طوری»، «انگیزشی»، «<span class="mono">meme</span>» و … از لیست.</li>
+              <li>اگر دستهٔ مناسب پیدا نکردی، خالی بگذار و در یادداشت بنویس. ما هماهنگ می‌کنیم. (خودت دستهٔ جدید نساز.)</li>
+              <li>دستهٔ «طراح» و «استیکر» را نمی‌خواهد بنویسی؛ خودمان می‌گذاریم.</li>
+              <li>همهٔ دسته‌ها در فایل دسته‌های-سایت و برگهٔ «دسته‌های سایت» اکسل هستند.</li>
+            </ul>
+          </section>
+
+          <!-- 5 -->
+          <section class="section">
+            <h2>۵) چک‌لیست قبل از ارسال</h2>
+            <ul class="check-list">
+              <li><span class="check-box" aria-hidden="true"></span>هر PNG پس‌زمینهٔ شفاف دارد و حاشیهٔ سفید و سایهٔ بیرونی ندارد</li>
+              <li><span class="check-box" aria-hidden="true"></span>اسم فایل‌ها واضح است و تکراری نیست</li>
+              <li><span class="check-box" aria-hidden="true"></span>اکسل برای هر PNG یک ردیف دارد و اسم‌ها دقیقاً یکی‌اند</li>
+              <li><span class="check-box" aria-hidden="true"></span>ستون آخر اکسل برای همهٔ ردیف‌ها سبز است</li>
+            </ul>
+          </section>
+
+          <!-- 6 -->
+          <section class="section">
+            <h2>۶) بعد از ارسال چه می‌شود؟</h2>
+            <div class="card-blue">
+              <p>
+                ما استیکرها را می‌گیریم، خط برش و نوار سفید دورشان را می‌سازیم، ماکاپ تهیه می‌کنیم و روی سایت می‌گذاریم.
+                اگر جایی ایرادی بود (اسم تکراری، دستهٔ ناشناس، فایل خراب) برایت پیام می‌دهیم.
+              </p>
+            </div>
+            <div class="closing">
+              <strong>گیکتوری</strong>
+              <span>با رعایت این راهنما، استیکرهایت سریع‌تر روی سایت می‌روند.</span>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const btn = document.getElementById("toggleGuide");
+    const panel = document.getElementById("guidePanel");
+    const label = btn.querySelector(".btn-label");
+    const hint = document.getElementById("hintClosed");
+
+    function setOpen(open) {
+      panel.classList.toggle("open", open);
+      btn.classList.toggle("open", open);
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      label.textContent = open ? "بستن راهنما" : "نمایش راهنما";
+      hint.classList.toggle("hidden", open);
+      if (open) {
+        // smooth scroll to panel after expand starts
+        setTimeout(() => {
+          panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 80);
+      }
+    }
+
+    btn.addEventListener("click", () => {
+      setOpen(!panel.classList.contains("open"));
+    });
+
+    // Open automatically if URL has #guide
+    if (location.hash === "#guide") {
+      setOpen(true);
+    }
+  </script>
+</body>
+</html>
