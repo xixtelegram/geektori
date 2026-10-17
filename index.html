@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>گیکتوری | ورود طراح</title>
+  <title>گیکتوری · ورود طراحان</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazir-font@v30.1.0/dist/font-face.css" rel="stylesheet" />
   <link rel="stylesheet" href="css/app.css" />
@@ -19,155 +19,152 @@
       }
     }
   </script>
-  <style>
-    .tab-btn {
-      cursor: pointer;
-      user-select: none;
-      -webkit-user-select: none;
-      border: none;
-      background: transparent;
-      transition: background 0.15s ease, box-shadow 0.15s ease, color 0.15s ease;
-    }
-    .tab-btn.is-active {
-      background: #fff !important;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      font-weight: 600;
-      color: #1e293b;
-    }
-    .tab-btn:not(.is-active) {
-      font-weight: 500;
-      color: #64748b;
-    }
-    .tab-btn:hover:not(.is-active) {
-      background: rgba(255,255,255,0.45);
-    }
-  </style>
 </head>
-<body class="text-slate-800 min-h-screen">
+<body class="font-sans text-slate-800 min-h-screen">
 
-  <div class="min-h-screen flex flex-col items-center justify-center px-4 py-10">
-    <div class="text-center mb-8">
-      <div class="text-5xl mb-3">🏷️</div>
-      <h1 class="text-2xl font-bold tracking-tight">گیکتوری</h1>
-      <p class="text-sm text-slate-500 mt-1">پنل فروش طراحان استیکر</p>
+  <!-- Top bar -->
+  <header class="glass-header sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+      <div class="font-bold text-[17px] tracking-tight">گیکتوری</div>
+      <a href="designer-guide/"
+         class="btn-ios text-sm !py-2 !px-4 inline-flex items-center gap-1.5 shadow-sm">
+        <span aria-hidden="true">📦</span>
+        ابزار تحویل
+      </a>
     </div>
+  </header>
 
-    <div id="authCard" class="glass-strong rounded-[28px] p-6 w-full max-w-md space-y-4">
-      <!-- تب‌ها -->
-      <div class="flex rounded-2xl bg-black/5 p-1 gap-1" role="tablist">
-        <button type="button" data-tab="login" class="tab-btn is-active flex-1 py-2.5 text-sm rounded-xl">ورود</button>
-        <button type="button" data-tab="register" class="tab-btn flex-1 py-2.5 text-sm rounded-xl">ساخت حساب</button>
-        <button type="button" data-tab="recover" class="tab-btn flex-1 py-2.5 text-sm rounded-xl">بازیابی</button>
+  <main class="max-w-5xl mx-auto px-4 py-10 md:py-14">
+
+    <!-- Hero + CTA -->
+    <section class="text-center mb-10 md:mb-14">
+      <p class="text-sm font-semibold text-brand-600 mb-2">پنل طراحان</p>
+      <h1 class="text-3xl md:text-4xl font-bold tracking-tight mb-3">ورود به حساب طراح</h1>
+      <p class="text-slate-500 text-[15px] max-w-md mx-auto mb-6">
+        فروش و آمار فصل‌ها را ببین، یا با ابزار تحویل استیکر فایل‌هایت را آمادهٔ ارسال کن.
+      </p>
+      <a href="designer-guide/"
+         class="inline-flex items-center justify-center gap-2 rounded-full bg-white/80 border border-white/70 shadow-md px-6 py-3 text-[15px] font-semibold text-slate-800 hover:bg-white transition">
+        <span class="text-lg">📦</span>
+        ابزار تحویل استیکر
+        <span class="text-slate-400 text-xs font-normal">بدون نیاز به ورود</span>
+      </a>
+    </section>
+
+    <!-- Auth card -->
+    <div id="authCard" class="glass-strong rounded-[28px] p-6 md:p-8 max-w-lg mx-auto">
+
+      <!-- Tabs -->
+      <div class="flex gap-2 p-1 rounded-2xl bg-black/5 mb-6" role="tablist">
+        <button type="button" data-tab="login" class="auth-tab flex-1 rounded-xl py-2.5 text-sm font-semibold bg-white shadow-sm text-slate-800">ورود</button>
+        <button type="button" data-tab="register" class="auth-tab flex-1 rounded-xl py-2.5 text-sm font-medium text-slate-600">ثبت‌نام</button>
+        <button type="button" data-tab="recover" class="auth-tab flex-1 rounded-xl py-2.5 text-sm font-medium text-slate-600">بازیابی</button>
       </div>
 
-      <!-- ورود -->
-      <form id="formLogin" class="space-y-3" data-panel="login">
+      <!-- Login -->
+      <form id="formLogin" class="auth-panel space-y-4" data-panel="login">
         <div>
-          <label class="text-xs font-medium text-slate-500 mb-1 block">نام کاربری (نام طراح)</label>
-          <input type="text" id="loginName" autocomplete="username" required
-            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" placeholder="مثلاً XIXnight" />
+          <label class="text-xs font-medium text-slate-500 mb-1 block">نام کاربری (اسم طراح در سایت)</label>
+          <input id="loginName" type="text" autocomplete="username" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white/80" />
         </div>
         <div>
           <label class="text-xs font-medium text-slate-500 mb-1 block">رمز عبور</label>
-          <input type="password" id="loginPass" autocomplete="current-password" required
-            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+          <input id="loginPass" type="password" autocomplete="current-password" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white/80" />
         </div>
-        <p id="loginErr" class="text-rose-600 text-sm hidden"></p>
-        <button type="submit" class="btn-ios w-full py-2.5">ورود به پنل</button>
+        <p id="loginErr" class="hidden text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2"></p>
+        <button type="submit" class="btn-ios w-full">ورود به پنل</button>
       </form>
 
-      <!-- ثبت‌نام -->
-      <form id="formRegister" class="space-y-3 hidden" data-panel="register">
+      <!-- Register -->
+      <form id="formRegister" class="auth-panel space-y-4 hidden" data-panel="register">
         <div>
-          <label class="text-xs font-medium text-slate-500 mb-1 block">نام طراح (همان نام فایل‌های فروش)</label>
-          <input type="text" id="regName" required
-            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" placeholder="مثلاً XIXnight" />
+          <label class="text-xs font-medium text-slate-500 mb-1 block">نام طراح (همان اسم سایت)</label>
+          <input id="regName" type="text" autocomplete="username" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white/80" />
         </div>
         <div>
           <label class="text-xs font-medium text-slate-500 mb-1 block">رمز عبور</label>
-          <input type="password" id="regPass" minlength="6" required
-            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+          <input id="regPass" type="password" autocomplete="new-password" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white/80" />
         </div>
         <div>
           <label class="text-xs font-medium text-slate-500 mb-1 block">تکرار رمز</label>
-          <input type="password" id="regPass2" minlength="6" required
-            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+          <input id="regPass2" type="password" autocomplete="new-password" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white/80" />
         </div>
-        <p id="regErr" class="text-rose-600 text-sm hidden"></p>
-        <button type="submit" class="btn-ios w-full py-2.5">ایجاد حساب</button>
+        <p id="regErr" class="hidden text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2"></p>
+        <button type="submit" class="btn-ios w-full">ثبت‌نام</button>
       </form>
 
-      <!-- بازیابی با کد یک‌بارمصرف -->
-      <form id="formRecover" class="space-y-3 hidden" data-panel="recover">
+      <!-- Recover -->
+      <form id="formRecover" class="auth-panel space-y-4 hidden" data-panel="recover">
         <div>
           <label class="text-xs font-medium text-slate-500 mb-1 block">نام کاربری</label>
-          <input type="text" id="recName" required
-            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+          <input id="recName" type="text" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white/80" />
         </div>
         <div>
-          <label class="text-xs font-medium text-slate-500 mb-1 block">رمز یک‌بارمصرف (XXXX-XXXX)</label>
-          <input type="text" id="recCode" required placeholder="مثلاً ABCD-EFGH"
-            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 font-mono tracking-wider" />
+          <label class="text-xs font-medium text-slate-500 mb-1 block">کد بازیابی</label>
+          <input id="recCode" type="text" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white/80 tracking-widest" />
         </div>
         <div>
-          <label class="text-xs font-medium text-slate-500 mb-1 block">رمز عبور جدید</label>
-          <input type="password" id="recNewPass" minlength="6" required
-            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+          <label class="text-xs font-medium text-slate-500 mb-1 block">رمز جدید</label>
+          <input id="recNewPass" type="password" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white/80" />
         </div>
         <div>
           <label class="text-xs font-medium text-slate-500 mb-1 block">تکرار رمز جدید</label>
-          <input type="password" id="recNewPass2" minlength="6" required
-            class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400" />
+          <input id="recNewPass2" type="password" class="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-400 bg-white/80" />
         </div>
-        <p id="recErr" class="text-rose-600 text-sm hidden"></p>
-        <button type="submit" class="btn-ios w-full py-2.5">بازنشانی رمز</button>
+        <p id="recErr" class="hidden text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2"></p>
+        <button type="submit" class="btn-ios w-full">بازیابی و ورود</button>
       </form>
     </div>
 
-    <!-- نمایش کدهای بازیابی بعد از ثبت‌نام -->
-    <div id="recoveryBox" class="hidden glass-strong rounded-[28px] p-6 w-full max-w-md mt-4 space-y-3">
-      <h2 class="font-bold text-center">🔐 کدهای بازیابی (یک‌بارمصرف)</h2>
-      <p class="text-xs text-slate-500 text-center">این ۴ کد را در جای امن ذخیره کنید. هر کد فقط یک بار قابل استفاده است.</p>
-      <ul id="recoveryList" class="space-y-2 font-mono text-center text-sm"></ul>
-      <button type="button" id="goToPanel" class="btn-ios w-full py-2.5">ورود به پنل طراح</button>
+    <!-- Recovery codes after register -->
+    <div id="recoveryBox" class="hidden glass-strong rounded-[28px] p-6 md:p-8 max-w-lg mx-auto mt-6">
+      <h2 class="text-lg font-bold mb-2">کدهای بازیابی</h2>
+      <p class="text-sm text-slate-500 mb-4">این کدها را در جای امن نگه دار. فقط یک‌بار نمایش داده می‌شوند.</p>
+      <ul id="recoveryList" class="space-y-2 text-center font-mono text-sm mb-6"></ul>
+      <button type="button" id="goToPanel" class="btn-ios w-full">ورود به پنل</button>
     </div>
 
-    <p class="text-xs text-slate-400 mt-6 text-center">
-      <a href="admin.html" class="underline hover:text-slate-600">ورود ادمین</a>
-    </p>
-  </div>
+    <!-- Secondary tool card -->
+    <section class="mt-12 max-w-lg mx-auto">
+      <a href="designer-guide/" class="glass-card block p-6 no-underline text-slate-800 group">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-2xl bg-brand-50 flex items-center justify-center text-2xl shrink-0">📦</div>
+          <div class="min-w-0 flex-1">
+            <h2 class="font-bold text-[17px] mb-1 group-hover:text-brand-700 transition">ابزار تحویل</h2>
+            <p class="text-sm text-slate-500 leading-relaxed">
+              آپلود PNG، انتخاب دسته، پر کردن قالب اکسل و دانلود ZIP آمادهٔ ارسال به گیکتوری.
+            </p>
+          </div>
+          <span class="text-slate-400 text-xl mt-1 group-hover:text-brand-600 transition">‹</span>
+        </div>
+      </a>
+    </section>
+  </main>
 
-  <!-- سوییچ تب بدون وابستگی به ماژول — همیشه کار می‌کند -->
+  <footer class="text-center text-xs text-slate-400 py-8">
+    گیکتوری · پنل طراحان
+  </footer>
+
+  <script type="module" src="js/auth/landing.js"></script>
   <script>
-    (function () {
-      function showTab(tab) {
-        document.querySelectorAll('.tab-btn').forEach(function (b) {
-          b.classList.toggle('is-active', b.getAttribute('data-tab') === tab);
+    // Tab switcher for login / register / recover
+    document.querySelectorAll('.auth-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const name = tab.dataset.tab;
+        document.querySelectorAll('.auth-tab').forEach((t) => {
+          const on = t.dataset.tab === name;
+          t.classList.toggle('bg-white', on);
+          t.classList.toggle('shadow-sm', on);
+          t.classList.toggle('font-semibold', on);
+          t.classList.toggle('text-slate-800', on);
+          t.classList.toggle('font-medium', !on);
+          t.classList.toggle('text-slate-600', !on);
         });
-        document.querySelectorAll('[data-panel]').forEach(function (panel) {
-          if (panel.getAttribute('data-panel') === tab) {
-            panel.classList.remove('hidden');
-          } else {
-            panel.classList.add('hidden');
-          }
-        });
-        ['loginErr', 'regErr', 'recErr'].forEach(function (id) {
-          var el = document.getElementById(id);
-          if (el) el.classList.add('hidden');
-        });
-      }
-
-      document.querySelectorAll('.tab-btn').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          showTab(btn.getAttribute('data-tab'));
+        document.querySelectorAll('.auth-panel').forEach((p) => {
+          p.classList.toggle('hidden', p.dataset.panel !== name);
         });
       });
-
-      window.__giktoriShowTab = showTab;
-    })();
+    });
   </script>
-  <script type="module" src="js/auth/landing.js"></script>
 </body>
 </html>
