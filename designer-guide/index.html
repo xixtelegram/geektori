@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ابزار تحویل استیکر · گیکتوری</title>
+  <meta name="description" content="ابزار تحویل استیکر برای طراحان گیکتوری — آپلود PNG، انتخاب دسته، تولید اکسل و ZIP" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- ExcelJS: preserves template styles, formulas, validations, CF -->
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <!-- JSZip for ZIP packaging -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="../index.html" class="nav-logo">گیکتوری · ابزار تحویل</a>
+      <a href="../index.html" class="nav-badge" style="text-decoration:none">← بازگشت به صفحه اصلی</a>
+    </div>
+  </nav>
+
+  <main class="main">
+    <h1 class="page-title">تحویل استیکر</h1>
+    <p class="page-sub">
+      فایل‌های PNG را آپلود کن، اسم و دسته‌ها را تنظیم کن،
+      و یک ZIP آمادهٔ ارسال با اکسل و طرح‌ها بگیر.
+    </p>
+
+    <!-- Progress -->
+    <div class="progress" id="progress">
+      <div class="progress-step active" data-step="1">۱. نام طراح</div>
+      <div class="progress-step" data-step="2">۲. آپلود PNG</div>
+      <div class="progress-step" data-step="3">۳. دسته‌بندی</div>
+      <div class="progress-step" data-step="4">۴. دانلود ZIP</div>
+    </div>
+
+    <!-- Step 1: Designer name -->
+    <div class="panel" id="panel-designer">
+      <h2 class="panel-title">نام طراح در سایت گیکتوری</h2>
+      <p class="panel-desc">همان اسمی که تو سایت داری. اسم پوشه و فایل اکسل از روی این ساخته می‌شود.</p>
+      <label class="field-label" for="designerName">نام طراح</label>
+      <input type="text" id="designerName" placeholder="مثلاً: سارا محمدی" autocomplete="off" />
+    </div>
+
+    <!-- Step 2: Upload -->
+    <div class="panel" id="panel-upload">
+      <h2 class="panel-title">آپلود فایل‌های PNG</h2>
+      <p class="panel-desc">
+        فقط PNG با پس‌زمینهٔ شفاف. حاشیهٔ سفید و سایهٔ بیرونی نگذار —
+        خط برش را خودمان می‌سازیم. هر فایل = یک استیکر.
+      </p>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="fileInput" accept="image/png,.png" multiple />
+        <div class="upload-icon">🖼</div>
+        <div class="upload-title">فایل‌های PNG را اینجا رها کن</div>
+        <div class="upload-hint">یا کلیک کن تا انتخاب کنی · چند فایل همزمان</div>
+      </div>
+    </div>
+
+    <!-- Step 3: Sticker list -->
+    <div class="panel" id="panel-stickers">
+      <h2 class="panel-title">استیکرها و دسته‌بندی</h2>
+      <p class="panel-desc">
+        برای هر استیکر اسم واضح بگذار (بدون کلمهٔ «استیکر»)،
+        تا ۸ دسته انتخاب کن، یادداشت سئو (اجباری) و در صورت نیاز یادداشت برای گیکتوری بنویس.
+      </p>
+      <div class="sticker-list" id="stickerList">
+        <div class="empty-state" id="emptyStickers">
+          <p>هنوز فایلی آپلود نشده.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="panel" id="panel-checklist">
+      <h2 class="panel-title">چک‌لیست قبل از ارسال</h2>
+      <ul class="checklist" id="checklist">
+        <li class="check-item">
+          <div class="check-icon wait" id="chk-designer">–</div>
+          <span>نام طراح وارد شده</span>
+        </li>
+        <li class="check-item">
+          <div class="check-icon wait" id="chk-files">–</div>
+          <span>حداقل یک فایل PNG آپلود شده</span>
+        </li>
+        <li class="check-item">
+          <div class="check-icon wait" id="chk-names">–</div>
+          <span>اسم فایل‌ها واضح، بدون «استیکر»، و بدون تکرار</span>
+        </li>
+        <li class="check-item">
+          <div class="check-icon wait" id="chk-cats">–</div>
+          <span>دسته‌ها از لیست سایت انتخاب شده‌اند (یا خالی با یادداشت گیکتوری)</span>
+        </li>
+        <li class="check-item">
+          <div class="check-icon wait" id="chk-seo">–</div>
+          <span>یادداشت سئو برای همهٔ استیکرها پر شده (اجباری)</span>
+        </li>
+        <li class="check-item">
+          <div class="check-icon wait" id="chk-png">–</div>
+          <span>هر PNG پس‌زمینهٔ شفاف دارد و حاشیهٔ سفید / سایهٔ بیرونی ندارد <em style="color:var(--color-slate)">(بررسی چشمی)</em></span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Generate -->
+    <div class="actions-bar">
+      <button class="btn-primary" id="btnGenerate" disabled>
+        ساخت و دانلود ZIP
+      </button>
+      <button class="btn-secondary" id="btnClear" type="button">پاک کردن همه</button>
+    </div>
+  </main>
+
+  <!-- Category Modal -->
+  <div class="modal-backdrop" id="catModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-labelledby="catModalTitle">
+      <div class="modal-header">
+        <div class="modal-header-top">
+          <h3 class="modal-title" id="catModalTitle">انتخاب دسته‌ها</h3>
+          <button type="button" class="modal-close" id="catModalClose" aria-label="بستن">×</button>
+        </div>
+        <div class="modal-search-wrap">
+          <input type="text" class="modal-search" id="catModalSearch" placeholder="جستجو بین ۳۳۷ دسته…" autocomplete="off" />
+          <span class="modal-search-icon">⌕</span>
+        </div>
+      </div>
+      <div class="modal-meta">
+        <span id="catModalCount"><strong>0</strong> از ۸ انتخاب شده</span>
+        <span id="catModalFiltered"></span>
+      </div>
+      <div class="modal-selected-strip" id="catModalSelected"></div>
+      <div class="modal-body">
+        <div class="modal-grid" id="catModalGrid"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="catModalClear">پاک کردن</button>
+        <button type="button" class="btn-primary" id="catModalDone">تأیید</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+  // ═══════════════════════════════════════════════════
+  // Categories (from site list — exact spelling)
+  // ═══════════════════════════════════════════════════
+  const CATEGORIES = [
+    "13reasons why","20 Century Girl","25 21","Aesthetic","AI","Alan Wake","Among US","Arcane",
+    "Ashkan Kagan","Assassin's Creed","Attack On Titan","Barbie","Batman","Battlefield","big bang theory",
+    "BlackPink","Breaking Bad","BTS","Bungo Stray Dogs","BUTT","Call Of Duty","Camping","Captain America",
+    "Castle in the sky","Christmas","Classic","Climate change","Counter Strike","Crash Bandicoot","crypto",
+    "Cyberpunk","Dance","Dark","Day6","DC Studio","Deadpool","Death Note","Demon Slayer","Deus Ex",
+    "Digital Marketing","Doom At Your Service","DOTA","Exo","Extraordinary Attorney Woo","Family by Choice",
+    "Feminism فمنیسم","Feminista","Fleabag","Fortnite","Friends","Game Of Thrones","Gamer Things",
+    "Gears of war","Gen Z","Generations","Genshin Impact","Goblin","God of War","GoLang",
+    "Grave of the Fireflies","Gray's Anatomy","GTA","Guardians of Galaxy","Hanibal","Happiness",
+    "Harry Potter","Hellbound","Hiphopologist هیپهاپولوژیست","how i met your mother","Howls moving castle",
+    "Hulk","Inside Out","Iron Man","It","John Wick","Joker","Jujutsu Kaisen","Ketnipz",
+    "Kiki's Delivery Service","KPop Demon Hunters","Labubu","Legacy of Kain","Leon The Professional",
+    "Loki","Lord of the rings","Lucifer","Makeup","Mario","meme","Metal Gear Solid","Millennials",
+    "Minecraft","minions","Money Heist (La Casa de Papel)","Monster Inc","Moon Knight","Moon Lovers",
+    "Mortal Kombat","Mouse","Mr Plankton","Mr. Robot","My Neighbor Totoro","Naruto","Network","Nirvana",
+    "One Piece","Oppenheimer","Our Beloved Summer","Peach and Goma","Peaky Blinders","Pentol","Pink Floyd",
+    "Pokémon","Ponyo","Pop","Pride","Proposal Business","Psychonauts","Pubg","Queen of Tears","Quote",
+    "Rainbow Six Siege","Red Dead Redemption","Resident Evil","Rick and Morty","Sadness","Sea of thieves",
+    "Self Care","Sherlock","Sign","Sims","Snow Drop","Something in the Rain","Spiderman","Spirited Away",
+    "Spoiled Rabbit","Spy x Family","Squid Game","star wars","stranger things","Stray Kids","Surf's Up",
+    "Suzume","Sweet Home","Taxi Driver","Taylor Swift","Ted Lasso","Teenage Mutant Ninja Turtles","Text",
+    "The Handmaid's Tale","The king eternal monarch","The Last of us","The Lord of the Rings: The Rings of Power",
+    "The Marvelous Mrs. Maisel","The Office","The Witcher","This Is Us","Thor","Tokyo Ghoul","Tomb Raider",
+    "Toy Story","Travel","Twinkling Watermelon","V for Vendetta","Vampire","Vegeterian","Venom","Vikings",
+    "Walking Dead","Wall-e","Wanda Vision","We Bare Bears","Wednesday","آ.اس. رم A.S. Roma","آبی","آث‌میلان",
+    "آشپزی و شیرینی پزی","آفرود - offroad","اباصالح المهدی (عج)","ادبیات","استیکر 18 ساله ها","استیکر 25 ساله ها",
+    "استیکر 6 ضلعی","استیکر تراپی","استیکر های Cheeky Chops","استیکر های Giftori","استیکر های آسمونی",
+    "استیکر های ابدی (Eternal)","استیکر های بولت ژورنال","استیکر های تمبری","استیکر های فانتزی","استیکر کیبورد",
+    "استیکرشیت","اسکی روی یخ","اسکیت","اسکین لپ تاپ","اقیانوس","امام حسین (ع)","امیرالمؤمنین (ع)","انگیزشی",
+    "انیمه Anime","اژدها سواران","ایران","باب اسفنجی","بارسلونا","بازی","بایرن مونیخ","بتمنی","بدنسازی",
+    "برنامه نویس ها","بسکتبال NBA","بشه‌ی منه","بلو بانک","بنفش","به صرفه بخر","بهار","بورس و ترید","تابستان",
+    "تایپوگرافی","تنیس","تن‌تن Tintin","تو بانک","حضرت زهرا (س)","حقوق","خوشمزه","دارو سازی","دندان پزشکی",
+    "دوست دختر بتمن","دوچرخه و موتورسواری","رئال مادرید 🏆👑🏳️","رابرداک","رترور","رشته های دانشگاهی",
+    "رهبر شهید","روانشناسی و روانپزشکی","رپ و HipHop","ریاضی","زرد","زمستان","سازهای موسیقی","سبز","سرعت",
+    "سفید","سوار کاری","سیاه سفید","شعر","شغل ها","شنا","شهر ها","طراحان","طلسم شدگان","طوسی",
+    "عاشقی - in Love","عشق ابدی","عشق گربه - Cat Person","علمی","عمومی","عکاسی","فرمول یک Formula 1",
+    "فستوری","فستوری بازی","فستوری طراح ها","فستوری عمومی","فستوری فیلم و سریال","فستوری مذهبی",
+    "فستوری موسیقی","فستوری کامپیوتر","فستوری کیوت‌طوری","فلسفی","فوتبال","فکت","فیلم-سریال-انیمیشن",
+    "قرمز صورتی","قهوه - Coffee","قیاسی","لوگو اتوموبیل","لوگو دانشگاه جهان","لوگو ها","لوگوی تیم فوتبال",
+    "لوگوی دانشگاه ها","مادر","مارول","مارکوس","ماشین","ماندالا","ماه های تولد","ماهی ازون برون",
+    "متن فارسی","مذهبی","مشاوره","معماری","مهمونی","مهندسی برق","مهندسی شیمی","مهندسی صنایع","مهندسی عمران",
+    "مهندسی معدن","مهندسی مواد","مهندسی مکانیک","مهندسی نساجی","مهندسی نفت","مهندسی هوافضا","مهندسی پزشکی",
+    "مهندسی پلیمر","موسیقی","مومنتوری","میکرو استیکر","نارنجی","نجوم","نقاشی","نوستالژی","هالووین",
+    "هفت سین","هنر","واليبال","ورزشی","وقتی زندگی بهت نارنگی میدهد","ِDoctor Strange","پایتخت","پاییز",
+    "پت‌طوری","پزشکی","پیکسل تراپی","ژنتیک","کاراته","کارت استیکر","کامپیوتر","کتاب","کرم قهوه ای",
+    "کنترل خشم","کومان","کیدراما","کیوت‌طوری","گرافیک","گیک های کامپیوتر","یلدا","یوونتوس"
+  ];
+
+  const CATEGORY_SET = new Set(CATEGORIES);
+
+  // ═══════════════════════════════════════════════════
+  // State
+  // ═══════════════════════════════════════════════════
+  /** @type {{id:string, file:File, name:string, cats:string[], note:string, geektoryNote:string, preview:string}[]} */
+  let stickers = [];
+  let nextId = 1;
+
+  // ═══════════════════════════════════════════════════
+  // DOM refs
+  // ═══════════════════════════════════════════════════
+  const designerInput = document.getElementById("designerName");
+  const uploadZone = document.getElementById("uploadZone");
+  const fileInput = document.getElementById("fileInput");
+  const stickerList = document.getElementById("stickerList");
+  const emptyStickers = document.getElementById("emptyStickers");
+  const btnGenerate = document.getElementById("btnGenerate");
+  const btnClear = document.getElementById("btnClear");
+  const toastEl = document.getElementById("toast");
+
+  // ═══════════════════════════════════════════════════
+  // Name validation (per guide)
+  // ═══════════════════════════════════════════════════
+  const BAD_PATTERNS = [
+    { re: /استیکر/i, msg: "کلمهٔ «استیکر» نباید در اسم باشد" },
+    { re: /^IMG[_\s-]?\d+/i, msg: "اسم دوربین (مثل IMG_2785) قبول نیست" },
+    { re: /\bcopy\b/i, msg: "کلمهٔ copy در اسم نباشد" },
+    { re: /طرح\s*\d+/i, msg: "اسمی مثل «طرح۱» قبول نیست" },
+    { re: /جدید/i, msg: "کلمهٔ «جدید» در اسم نباشد" },
+    { re: /^DSC[_\s-]?\d+/i, msg: "اسم دوربین (مثل DSC_) قبول نیست" },
+    { re: /^Screenshot/i, msg: "اسم اسکرین‌شات قبول نیست" },
+    { re: /^untitled/i, msg: "untitled قبول نیست" },
+  ];
+
+  function validateName(name, id) {
+    const n = (name || "").trim();
+    if (!n) return { ok: false, msg: "اسم خالی است" };
+    for (const p of BAD_PATTERNS) {
+      if (p.re.test(n)) return { ok: false, msg: p.msg };
+    }
+    // duplicate check
+    const dup = stickers.find(s => s.id !== id && s.name.trim() === n);
+    if (dup) return { ok: false, msg: "این اسم تکراری است" };
+    // too generic short codes
+    if (/^[a-zA-Z0-9_\-]{1,4}$/.test(n) && !/[آ-ی]/.test(n)) {
+      return { ok: false, msg: "اسم واضح‌تر و توصیفی‌تر بگذار" };
+    }
+    return { ok: true, msg: "✓ مناسب" };
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Toast
+  // ═══════════════════════════════════════════════════
+  let toastTimer;
+  function toast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2800);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Progress + Checklist
+  // ═══════════════════════════════════════════════════
+  function updateProgress() {
+    const hasDesigner = designerInput.value.trim().length > 0;
+    const hasFiles = stickers.length > 0;
+    const allNamesOk = hasFiles && stickers.every(s => validateName(s.name, s.id).ok);
+    const catsOk = hasFiles && stickers.every(s => {
+      if (s.cats.length === 0) return true;
+      return s.cats.every(c => CATEGORY_SET.has(c)) && s.cats.length <= 8;
+    });
+    const seoOk = hasFiles && stickers.every(s => (s.note || "").trim().length > 0);
+
+    const steps = document.querySelectorAll(".progress-step");
+    steps.forEach(el => {
+      el.classList.remove("active", "done");
+      const n = +el.dataset.step;
+      if (n === 1) el.classList.add(hasDesigner ? "done" : "active");
+      else if (n === 2) el.classList.add(hasFiles ? "done" : (hasDesigner ? "active" : ""));
+      else if (n === 3) el.classList.add(allNamesOk && catsOk && seoOk ? "done" : (hasFiles ? "active" : ""));
+      else if (n === 4) el.classList.add(canGenerate() ? "active" : "");
+    });
+
+    setChk("chk-designer", hasDesigner);
+    setChk("chk-files", hasFiles);
+    setChk("chk-names", allNamesOk);
+    setChk("chk-cats", catsOk && hasFiles);
+    setChk("chk-seo", seoOk);
+    const pngIcon = document.getElementById("chk-png");
+    if (hasFiles) {
+      pngIcon.className = "check-icon wait";
+      pngIcon.textContent = "?";
+    } else {
+      pngIcon.className = "check-icon wait";
+      pngIcon.textContent = "–";
+    }
+
+    btnGenerate.disabled = !canGenerate();
+  }
+
+  function setChk(id, pass) {
+    const el = document.getElementById(id);
+    if (pass) {
+      el.className = "check-icon pass";
+      el.textContent = "✓";
+    } else {
+      el.className = "check-icon fail";
+      el.textContent = "✗";
+    }
+  }
+
+  function canGenerate() {
+    if (!designerInput.value.trim()) return false;
+    if (stickers.length === 0) return false;
+    return stickers.every(s =>
+      validateName(s.name, s.id).ok && (s.note || "").trim().length > 0
+    );
+  }
+
+  // ═══════════════════════════════════════════════════
+  // File handling
+  // ═══════════════════════════════════════════════════
+  uploadZone.addEventListener("click", () => fileInput.click());
+  uploadZone.addEventListener("dragover", e => {
+    e.preventDefault();
+    uploadZone.classList.add("dragover");
+  });
+  uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("dragover"));
+  uploadZone.addEventListener("drop", e => {
+    e.preventDefault();
+    uploadZone.classList.remove("dragover");
+    handleFiles(e.dataTransfer.files);
+  });
+  fileInput.addEventListener("change", () => {
+    handleFiles(fileInput.files);
+    fileInput.value = "";
+  });
+
+  function handleFiles(fileList) {
+    const files = Array.from(fileList).filter(f =>
+      f.type === "image/png" || f.name.toLowerCase().endsWith(".png")
+    );
+    if (files.length === 0) {
+      toast("فقط فایل PNG قبول است");
+      return;
+    }
+    files.forEach(file => {
+      const baseName = file.name.replace(/\.png$/i, "");
+      const id = "s" + (nextId++);
+      const reader = new FileReader();
+      reader.onload = ev => {
+        stickers.push({
+          id,
+          file,
+          name: baseName,
+          cats: [],
+          note: "",
+          geektoryNote: "",
+          preview: ev.target.result
+        });
+        renderStickers();
+        updateProgress();
+      };
+      reader.readAsDataURL(file);
+    });
+    toast(files.length + " فایل اضافه شد");
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Render sticker cards
+  // ═══════════════════════════════════════════════════
+  function renderStickers() {
+    if (stickers.length === 0) {
+      stickerList.innerHTML = "";
+      stickerList.appendChild(emptyStickers);
+      emptyStickers.classList.remove("hidden");
+      return;
+    }
+    emptyStickers.classList.add("hidden");
+    stickerList.innerHTML = "";
+
+    stickers.forEach(s => {
+      const v = validateName(s.name, s.id);
+      const card = document.createElement("div");
+      card.className = "sticker-card " + (v.ok ? "has-ok" : "has-error");
+      card.dataset.id = s.id;
+
+      card.innerHTML = `
+        <div class="sticker-thumb">
+          <img src="${s.preview}" alt="" />
+        </div>
+        <div class="sticker-body">
+          <div class="sticker-header">
+            <div class="sticker-orig">فایل اصلی: ${escapeHtml(s.file.name)}</div>
+            <button type="button" class="btn-remove" data-remove="${s.id}">حذف</button>
+          </div>
+          <div class="field-row">
+            <label class="field-label">نام استیکر (همان اسم فایل نهایی، بدون .png)</label>
+            <input type="text" class="name-input ${v.ok ? "ok" : "error"}" data-name="${s.id}"
+              value="${escapeAttr(s.name)}" />
+            <div class="name-status ${v.ok ? "ok" : "error"}">${v.msg}</div>
+          </div>
+          <div class="field-row">
+            <label class="field-label">دسته‌ها (تا ۸ تا · از لیست رسمی سایت)</label>
+            <button type="button" class="cat-trigger" data-opencats="${s.id}">
+              <div class="cat-trigger-left" data-catpreview="${s.id}">
+                ${renderCatPreviewHTML(s)}
+              </div>
+              <span class="cat-trigger-arrow">‹</span>
+            </button>
+            <div class="cat-hint" style="font-size:12px;color:var(--color-slate);margin-top:6px;">
+              ${s.cats.length === 0
+                ? "اگر دسته مناسب پیدا نکردی خالی بگذار و تو یادداشت بنویس."
+                : s.cats.length + " از ۸ دسته انتخاب شده"}
+            </div>
+          </div>
+          <div class="field-row">
+            <label class="field-label">یادداشت سئو <span style="color:var(--color-error)">*</span> (اجباری)</label>
+            <textarea data-note="${s.id}" class="${(s.note||'').trim() ? '' : 'error'}" placeholder="مثلاً: تانجیرو از انیمه‌ی دیمن اسلیر با گوشواره‌ی هانافودا" required>${escapeHtml(s.note)}</textarea>
+          </div>
+          <div class="field-row">
+            <label class="field-label">یادداشت برای گیکتوری (اختیاری)</label>
+            <textarea data-gnote="${s.id}" placeholder="مثلاً: رنگ استروک باید کد 4F091D باشد">${escapeHtml(s.geektoryNote || "")}</textarea>
+          </div>
+        </div>
+      `;
+      stickerList.appendChild(card);
+    });
+
+    // Bind events
+    stickerList.querySelectorAll("[data-remove]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        stickers = stickers.filter(x => x.id !== btn.dataset.remove);
+        renderStickers();
+        updateProgress();
+      });
+    });
+    stickerList.querySelectorAll("[data-name]").forEach(inp => {
+      inp.addEventListener("input", () => {
+        const s = stickers.find(x => x.id === inp.dataset.name);
+        if (s) s.name = inp.value;
+        const v = validateName(inp.value, inp.dataset.name);
+        inp.classList.toggle("ok", v.ok);
+        inp.classList.toggle("error", !v.ok);
+        const status = inp.parentElement.querySelector(".name-status");
+        status.textContent = v.msg;
+        status.className = "name-status " + (v.ok ? "ok" : "error");
+        const card = inp.closest(".sticker-card");
+        card.classList.toggle("has-ok", v.ok);
+        card.classList.toggle("has-error", !v.ok);
+        updateProgress();
+      });
+    });
+    stickerList.querySelectorAll("[data-note]").forEach(ta => {
+      ta.addEventListener("input", () => {
+        const s = stickers.find(x => x.id === ta.dataset.note);
+        if (s) s.note = ta.value;
+        ta.classList.toggle("error", !(ta.value || "").trim());
+        updateProgress();
+      });
+    });
+    stickerList.querySelectorAll("[data-gnote]").forEach(ta => {
+      ta.addEventListener("input", () => {
+        const s = stickers.find(x => x.id === ta.dataset.gnote);
+        if (s) s.geektoryNote = ta.value;
+      });
+    });
+    stickerList.querySelectorAll("[data-opencats]").forEach(btn => {
+      btn.addEventListener("click", () => openCatModal(btn.dataset.opencats));
+    });
+  }
+
+  function renderCatPreviewHTML(s) {
+    if (!s.cats.length) {
+      return '<span class="cat-trigger-placeholder">کلیک کن و دسته انتخاب کن…</span>';
+    }
+    const shown = s.cats.slice(0, 3);
+    let html = shown.map(c => `<span class="cat-mini-chip">${escapeHtml(c)}</span>`).join("");
+    if (s.cats.length > 3) {
+      html += `<span class="cat-mini-more">+${s.cats.length - 3}</span>`;
+    }
+    return html;
+  }
+
+  // ── Category Modal ──
+  let modalStickerId = null;
+  let modalTempCats = [];
+
+  const catModal = document.getElementById("catModal");
+  const catModalSearch = document.getElementById("catModalSearch");
+  const catModalGrid = document.getElementById("catModalGrid");
+  const catModalSelected = document.getElementById("catModalSelected");
+  const catModalCount = document.getElementById("catModalCount");
+  const catModalFiltered = document.getElementById("catModalFiltered");
+  const catModalPanel = catModal.querySelector(".modal");
+
+  function openCatModal(stickerId) {
+    const s = stickers.find(x => x.id === stickerId);
+    if (!s) return;
+    modalStickerId = stickerId;
+    modalTempCats = s.cats.slice();
+    catModalSearch.value = "";
+    renderModalUI();
+    catModal.classList.add("open");
+    catModal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    setTimeout(() => catModalSearch.focus(), 300);
+  }
+
+  function closeCatModal(apply) {
+    const id = modalStickerId;
+    const selected = modalTempCats.slice();
+    catModal.classList.remove("open");
+    catModal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    modalStickerId = null;
+
+    if (apply && id) {
+      const s = stickers.find(x => x.id === id);
+      if (s) {
+        s.cats = selected;
+        renderStickers();
+        updateProgress();
+        toast(selected.length ? selected.length + " دسته ذخیره شد" : "دسته‌ها پاک شد");
+      }
+    }
+  }
+
+  function toggleModalCat(cat) {
+    const idx = modalTempCats.indexOf(cat);
+    if (idx >= 0) {
+      modalTempCats.splice(idx, 1);
+    } else if (modalTempCats.length < 8) {
+      modalTempCats.push(cat);
+    } else {
+      toast("حداکثر ۸ دسته می‌توانی انتخاب کنی");
+      return;
+    }
+    renderModalUI();
+  }
+
+  function renderModalUI() {
+    // Selected chips
+    if (modalTempCats.length === 0) {
+      catModalSelected.innerHTML = "";
+    } else {
+      catModalSelected.innerHTML = modalTempCats.map((c, i) =>
+        `<span class="modal-chip">${escapeHtml(c)}<button type="button" data-rm-idx="${i}" aria-label="حذف">×</button></span>`
+      ).join("");
+    }
+
+    const n = modalTempCats.length;
+    catModalCount.innerHTML = n >= 8
+      ? `<span class="limit-warn"><strong>${n}</strong> از ۸ — حداکثر رسیده</span>`
+      : `<strong>${n}</strong> از ۸ انتخاب شده`;
+
+    const q = catModalSearch.value.trim().toLowerCase();
+    const filtered = q
+      ? CATEGORIES.filter(c => c.toLowerCase().includes(q))
+      : CATEGORIES;
+
+    catModalFiltered.textContent = q
+      ? `${filtered.length} نتیجه`
+      : `${CATEGORIES.length} دسته`;
+
+    if (filtered.length === 0) {
+      catModalGrid.innerHTML = '<div class="modal-empty">دسته‌ای با این نام پیدا نشد</div>';
+      return;
+    }
+
+    const atLimit = modalTempCats.length >= 8;
+    // Use index into CATEGORIES to avoid special-char dataset issues
+    catModalGrid.innerHTML = filtered.map(c => {
+      const sel = modalTempCats.includes(c);
+      const dis = !sel && atLimit;
+      const idx = CATEGORIES.indexOf(c);
+      return `<button type="button" class="modal-tag${sel ? " selected" : ""}${dis ? " disabled" : ""}" data-cat-idx="${idx}">${escapeHtml(c)}</button>`;
+    }).join("");
+  }
+
+  // Event delegation — reliable for dynamically rendered tags/chips
+  catModalSelected.addEventListener("click", e => {
+    const btn = e.target.closest("[data-rm-idx]");
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const i = parseInt(btn.getAttribute("data-rm-idx"), 10);
+    if (!isNaN(i)) {
+      modalTempCats.splice(i, 1);
+      renderModalUI();
+    }
+  });
+
+  catModalGrid.addEventListener("click", e => {
+    const tag = e.target.closest("[data-cat-idx]");
+    if (!tag || tag.classList.contains("disabled")) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const idx = parseInt(tag.getAttribute("data-cat-idx"), 10);
+    if (!isNaN(idx) && CATEGORIES[idx] != null) {
+      toggleModalCat(CATEGORIES[idx]);
+    }
+  });
+
+  catModalSearch.addEventListener("input", () => renderModalUI());
+
+  document.getElementById("catModalClose").addEventListener("click", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    closeCatModal(false);
+  });
+
+  document.getElementById("catModalDone").addEventListener("click", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    closeCatModal(true);
+  });
+
+  document.getElementById("catModalClear").addEventListener("click", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    modalTempCats = [];
+    renderModalUI();
+  });
+
+  // Backdrop click closes without apply; clicks inside panel do nothing extra
+  catModal.addEventListener("click", e => {
+    if (e.target === catModal) closeCatModal(false);
+  });
+  if (catModalPanel) {
+    catModalPanel.addEventListener("click", e => e.stopPropagation());
+  }
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && catModal.classList.contains("open")) closeCatModal(false);
+  });
+
+  // ═══════════════════════════════════════════════════
+  // Generate Excel from official template + ZIP
+  // Uses ExcelJS so styles, formulas, CF, validations, RTL stay intact
+  // ═══════════════════════════════════════════════════
+
+  async function buildExcelFromTemplate() {
+    const res = await fetch("قالب-اکسل-طراح.xlsx");
+    if (!res.ok) throw new Error("قالب اکسل پیدا نشد (قالب-اکسل-طراح.xlsx)");
+    const buf = await res.arrayBuffer();
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(buf);
+
+    // Find sticker sheet by normalized name
+    let ws = null;
+    workbook.eachSheet((sheet) => {
+      const n = (sheet.name || "").replace(/\u200c/g, "");
+      if (n === "استیکرها") ws = sheet;
+    });
+    if (!ws) ws = workbook.worksheets[0];
+
+    // Clear sample data in A/B/C only (rows 2–300). Never touch column D (formulas).
+    for (let r = 2; r <= 300; r++) {
+      const a = ws.getCell(r, 1);
+      const b = ws.getCell(r, 2);
+      const c = ws.getCell(r, 3);
+      a.value = null;
+      b.value = null;
+      c.value = null;
+      // Reset gray sample font to default black for empty rows
+      a.font = { color: { argb: "FF000000" } };
+      b.font = { color: { argb: "FF000000" } };
+      c.font = { color: { argb: "FF000000" } };
+    }
+
+    // Fill designer data starting at row 2
+    stickers.forEach((s, i) => {
+      const r = i + 2;
+      const catStr = s.cats.join("، ");
+
+      const cellA = ws.getCell(r, 1);
+      const cellB = ws.getCell(r, 2);
+      const cellC = ws.getCell(r, 3);
+
+      cellA.value = s.name.trim();
+      cellB.value = catStr;
+      cellC.value = (s.note || "").trim();
+
+      // Real data uses normal (black) text — samples were gray
+      cellA.font = { color: { argb: "FF000000" } };
+      cellB.font = { color: { argb: "FF000000" } };
+      cellC.font = { color: { argb: "FF000000" } };
+    });
+
+    const out = await workbook.xlsx.writeBuffer();
+    return out;
+  }
+
+  async function generateZip() {
+    const designer = designerInput.value.trim();
+    if (!designer || !canGenerate()) {
+      toast("لطفاً همهٔ موارد چک‌لیست را درست کن");
+      return;
+    }
+
+    btnGenerate.disabled = true;
+    btnGenerate.textContent = "در حال ساخت…";
+
+    try {
+      const zip = new JSZip();
+      const folder = zip.folder(designer);
+
+      // Official template, filled with designer data only
+      const excelData = await buildExcelFromTemplate();
+      folder.file(designer + ".xlsx", excelData);
+
+      // PNGs with final names (exactly as entered)
+      for (const s of stickers) {
+        const safeName = s.name.trim() + ".png";
+        folder.file(safeName, s.file);
+      }
+
+      // Geektory notes as separate text file (only stickers that have a note)
+      const gNotes = stickers
+        .filter(s => (s.geektoryNote || "").trim())
+        .map(s => s.name.trim() + " : " + s.geektoryNote.trim());
+      if (gNotes.length > 0) {
+        folder.file("یادداشت-گیکتوری.txt", gNotes.join("\n") + "\n");
+      }
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = designer + ".zip";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      toast("ZIP آماده شد — اکسل از روی قالب رسمی پر شد ✓");
+    } catch (err) {
+      console.error(err);
+      toast("خطا در ساخت فایل: " + (err.message || err));
+    } finally {
+      btnGenerate.disabled = false;
+      btnGenerate.textContent = "ساخت و دانلود ZIP";
+      updateProgress();
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Helpers
+  // ═══════════════════════════════════════════════════
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+  function escapeAttr(str) {
+    return escapeHtml(str).replace(/'/g, "&#39;");
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Events
+  // ═══════════════════════════════════════════════════
+  designerInput.addEventListener("input", updateProgress);
+  btnGenerate.addEventListener("click", generateZip);
+  btnClear.addEventListener("click", () => {
+    if (stickers.length && !confirm("همهٔ فایل‌ها پاک شوند؟")) return;
+    stickers = [];
+    designerInput.value = "";
+    renderStickers();
+    updateProgress();
+    toast("پاک شد");
+  });
+
+  // init
+  updateProgress();
+  </script>
+</body>
+</html>
