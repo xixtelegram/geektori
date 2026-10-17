@@ -61,6 +61,28 @@ body {
   background: var(--color-studio-mist); padding: 4px 12px;
   border-radius: var(--radius-pill);
 }
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.nav-guide {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-apple-blue);
+  text-decoration: none;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid #d0e4ff;
+  background: #f0f7ff;
+  transition: background 0.15s, border-color 0.15s;
+}
+.nav-guide:hover {
+  background: #e5f0ff;
+  border-color: var(--color-pricing-blue);
+}
 
 /* ——— Layout ——— */
 .main {
@@ -74,6 +96,22 @@ body {
 }
 .page-sub {
   font-size: 17px; color: var(--color-slate); margin-bottom: 36px; max-width: 560px;
+}
+.page-sub .guide-inline {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-apple-blue);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+.page-sub .guide-inline:hover {
+  border-bottom-color: var(--color-apple-blue);
+}
+.page-sub .guide-inline::before {
+  content: "📄 ";
 }
 
 /* ——— Progress ——— */
