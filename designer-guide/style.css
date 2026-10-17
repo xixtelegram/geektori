@@ -517,6 +517,128 @@ textarea { resize: vertical; min-height: 72px; }
   pointer-events: none;
 }
 
+/* Hierarchical folder tags */
+.modal-tag-folder {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 8px;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-weight: 500;
+  background: var(--color-studio-mist);
+  border-color: var(--color-hairline-silver);
+}
+.modal-tag-folder:hover {
+  background: #eef5ff;
+  border-color: var(--color-pricing-blue);
+}
+.modal-folder-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+.modal-folder-arrow {
+  margin-right: auto;
+  color: var(--color-steel);
+  font-size: 16px;
+}
+.modal-folder-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: #0071e3;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+}
+.modal-tag-leaf {
+  /* same as default tag */
+}
+
+/* Breadcrumb / back nav inside modal */
+.modal-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px 0;
+  flex-shrink: 0;
+}
+.modal-nav[hidden] { display: none !important; }
+.modal-back {
+  border: none;
+  background: var(--color-studio-mist);
+  color: var(--color-apple-blue);
+  font-family: var(--font-text);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.modal-back:hover { background: var(--color-control-gray); }
+.modal-nav-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+/* Folder grid layout when showing parents */
+.modal-grid:has(.modal-tag-folder) {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+@media (min-width: 480px) {
+  .modal-grid:has(.modal-tag-folder) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Copy / paste category actions on sticker cards */
+.cat-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.cat-hint {
+  font-size: 12px;
+  color: var(--color-slate);
+}
+.cat-copy-btns {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.btn-cat-copy,
+.btn-cat-paste {
+  border: 1px solid var(--color-hairline-silver);
+  background: var(--color-gallery-white);
+  color: var(--color-apple-blue);
+  font-family: var(--font-text);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.btn-cat-copy:hover,
+.btn-cat-paste:hover {
+  background: #f0f7ff;
+  border-color: var(--color-pricing-blue);
+}
+.btn-cat-paste {
+  background: #eef5ff;
+  border-color: #d0e4ff;
+}
+
 .modal-empty {
   text-align: center; padding: 40px 20px;
   color: var(--color-slate); font-size: 14px;
