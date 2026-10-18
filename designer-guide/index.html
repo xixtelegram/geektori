@@ -211,7 +211,7 @@
       "فرمول یک Formula 1","فوتبال","لوگوی تیم فوتبال","واليبال","کاراته","یوونتوس"
     ],
     "موسیقی": [
-      "Ashkan Kagan","BlackPink","BTS","Day6","Exo","هیپهاپولوژیست Hiphopologist","Nirvana",
+      "Ashkan Kagan","BlackPink","BTS","Day6","Exo","Hiphopologist هیپهاپولوژیست","Nirvana",
       "Pink Floyd","Pop","Stray Kids","Taylor Swift","رپ و HipHop","سازهای موسیقی"
     ],
     "فستوری": [
@@ -246,17 +246,27 @@
   // Ordered list of main category keys
   const CATEGORY_PARENTS = Object.keys(CATEGORY_TREE);
 
-  // All selectable values (leaves + leaf-only parents)
+  // All selectable values: every parent + all subcategories
   const CATEGORIES = (() => {
     const out = [];
     for (const parent of CATEGORY_PARENTS) {
+      out.push(parent);
       const kids = CATEGORY_TREE[parent];
-      if (!kids || kids.length === 0) out.push(parent);
-      else out.push(...kids);
+      if (kids && kids.length) out.push(...kids);
     }
     return out;
   })();
   const CATEGORY_SET = new Set(CATEGORIES);
+
+  // Map subcategory -> parent name (only for parents that have children)
+  const CHILD_TO_PARENT = (() => {
+    const map = {};
+    for (const parent of CATEGORY_PARENTS) {
+      const kids = CATEGORY_TREE[parent] || [];
+      for (const k of kids) map[k] = parent;
+    }
+    return map;
+  })();
 
 
   // ═══════════════════════════════════════════════════
@@ -634,13 +644,26 @@
   function toggleModalCat(cat) {
     const idx = modalTempCats.indexOf(cat);
     if (idx >= 0) {
+      // Deselect only this item (parent stays if user wants it)
       modalTempCats.splice(idx, 1);
-    } else if (modalTempCats.length < 8) {
-      modalTempCats.push(cat);
-    } else {
-      toast("حداکثر ۸ دسته می‌توانی انتخاب کنی");
+      renderModalUI();
       return;
     }
+
+    // Selecting a subcategory also selects its parent automatically
+    const parent = CHILD_TO_PARENT[cat] || null;
+    const needParent = !!(parent && parent !== cat && !modalTempCats.includes(parent));
+    const slotsNeeded = 1 + (needParent ? 1 : 0);
+
+    if (modalTempCats.length + slotsNeeded > 8) {
+      toast(needParent
+        ? "جا نیست: با انتخاب زیر‌دسته، دستهٔ والد هم اضافه می‌شود (حداکثر ۸)"
+        : "حداکثر ۸ دسته می‌توانی انتخاب کنی");
+      return;
+    }
+
+    if (needParent) modalTempCats.push(parent);
+    modalTempCats.push(cat);
     renderModalUI();
   }
 
@@ -684,25 +707,32 @@
       catModalGrid.innerHTML = CATEGORY_PARENTS.map(parent => {
         const kids = CATEGORY_TREE[parent] || [];
         const isLeaf = kids.length === 0;
+        const sel = modalTempCats.includes(parent);
+        const dis = !sel && atLimit;
         if (isLeaf) {
-          const sel = modalTempCats.includes(parent);
-          const dis = !sel && atLimit;
           return `<button type="button" class="modal-tag modal-tag-leaf${sel ? " selected" : ""}${dis ? " disabled" : ""}" data-leaf="${escapeAttr(parent)}">${escapeHtml(parent)}</button>`;
         }
+        // Parent with children: selectable itself + button to open subcategories
         const selCount = kids.filter(k => modalTempCats.includes(k)).length;
         const badge = selCount ? `<span class="modal-folder-badge">${selCount}</span>` : "";
-        return `<button type="button" class="modal-tag modal-tag-folder" data-folder="${escapeAttr(parent)}"><span class="modal-folder-icon">📁</span> ${escapeHtml(parent)}${badge}<span class="modal-folder-arrow">‹</span></button>`;
+        return `<div class="modal-folder-row">
+          <button type="button" class="modal-tag modal-tag-leaf${sel ? " selected" : ""}${dis ? " disabled" : ""}" data-leaf="${escapeAttr(parent)}">${escapeHtml(parent)}${badge}</button>
+          <button type="button" class="modal-folder-open" data-folder="${escapeAttr(parent)}" title="زیرمجموعه‌ها" aria-label="باز کردن زیرمجموعه‌های ${escapeAttr(parent)}">‹</button>
+        </div>`;
       }).join("");
     } else {
       catModalNav.hidden = false;
       catModalNavLabel.textContent = modalParent;
       const kids = CATEGORY_TREE[modalParent] || [];
       catModalFiltered.textContent = kids.length + " زیرمجموعه";
+      const parentSel = modalTempCats.includes(modalParent);
+      const parentDis = !parentSel && atLimit;
+      const parentBtn = `<button type="button" class="modal-tag modal-tag-parent${parentSel ? " selected" : ""}${parentDis ? " disabled" : ""}" data-leaf="${escapeAttr(modalParent)}">${escapeHtml(modalParent)} <span class="modal-parent-hint">(خود دسته)</span></button>`;
       if (kids.length === 0) {
-        catModalGrid.innerHTML = '<div class="modal-empty">زیرمجموعه‌ای نیست</div>';
+        catModalGrid.innerHTML = parentBtn;
         return;
       }
-      catModalGrid.innerHTML = kids.map(c => {
+      catModalGrid.innerHTML = parentBtn + kids.map(c => {
         const sel = modalTempCats.includes(c);
         const dis = !sel && atLimit;
         return `<button type="button" class="modal-tag${sel ? " selected" : ""}${dis ? " disabled" : ""}" data-leaf="${escapeAttr(c)}">${escapeHtml(c)}</button>`;
